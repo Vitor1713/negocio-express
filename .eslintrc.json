@@ -1,0 +1,4 @@
+{
+  "extends": "next/core-web-vitals",
+  "ignorePatterns": ["design/**", "src/lib/api-types.ts"]
+}

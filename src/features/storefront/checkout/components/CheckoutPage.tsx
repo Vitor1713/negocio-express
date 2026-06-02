@@ -1,0 +1,221 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { AppButton, Icon } from "@/components/ui";
+import { ApiError } from "@/lib/api";
+import { useCart } from "../../cart-context";
+import { useOrders } from "../../orders-context";
+import { StepIndicator } from "../../../onboarding/components/StepIndicator";
+import { CartStep } from "./CartStep";
+import { DeliveryStep } from "./DeliveryStep";
+import { PaymentStep } from "./PaymentStep";
+import { OrderConfirmed } from "./OrderConfirmed";
+import { OrderSummary, calcTotals } from "./OrderSummary";
+import { useCreateOrder, useCreatePayment } from "../hooks";
+import type { ValidatedCoupon, OrderResponse, PaymentResponse } from "../service";
+
+const STEPS = ["Carrinho", "Entrega", "Pagamento"];
+const DELIVERY_FEE = 6.9;
+
+type Step = "cart" | "delivery" | "payment" | "done";
+
+type DoneData = {
+  order: OrderResponse;
+  payment: PaymentResponse;
+  deliveryType: string;
+  method: string;
+};
+
+type Props = { slug: string };
+
+export function CheckoutPage({ slug }: Props) {
+  const { items, clear } = useCart();
+  const { saveOrder } = useOrders();
+  const [step, setStep] = useState<Step>("cart");
+  const [coupon, setCoupon] = useState<ValidatedCoupon | null>(null);
+  const [deliveryType, setDeliveryType] = useState<"delivery" | "pickup">("delivery");
+  const [addressId, setAddressId] = useState<string | null>(null);
+  const [method, setMethod] = useState("pix");
+  const [doneData, setDoneData] = useState<DoneData | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const createOrder = useCreateOrder(slug);
+  const createPayment = useCreatePayment(slug);
+
+  const stepNum = { cart: 1, delivery: 2, payment: 3, done: 3 }[step];
+  const showDelivery = step !== "cart";
+  const { total } = calcTotals(items, coupon, deliveryType === "delivery" ? DELIVERY_FEE : 0, showDelivery);
+
+  const submitting = createOrder.isPending || createPayment.isPending;
+
+  async function handleConfirm() {
+    setSubmitError(null);
+    try {
+      const order = await createOrder.mutateAsync({
+        deliveryType,
+        couponCode: coupon?.code ?? null,
+        items: items.map((i) => ({ productVariantId: i.variantId, quantity: i.qty })),
+      });
+
+      const payment = await createPayment.mutateAsync({ orderId: order.id!, method });
+
+      if (payment.status === "failed") {
+        setSubmitError("Pagamento recusado. Tente novamente ou use outra forma de pagamento.");
+        return;
+      }
+
+      setDoneData({ order, payment, deliveryType, method });
+
+      // Persiste o pedido na sessão para a área do cliente
+      saveOrder({
+        id: order.id!,
+        total: Number(order.total ?? 0),
+        deliveryType,
+        paymentStatus: payment.status ?? "pending",
+        paymentMethod: method,
+        createdAt: order.createdAt ?? new Date().toISOString(),
+        items: (order.items ?? []).map((item) => ({
+          variantId: item.productVariantId ?? "",
+          productName: item.productName ?? "",
+          variantName: item.variantName ?? "",
+          qty: Number(item.quantity ?? 1),
+          unitPrice: Number(item.unitPrice ?? 0),
+        })),
+      });
+
+      clear();
+      setStep("done");
+      window.scrollTo({ top: 0, behavior: "instant" });
+    } catch (err) {
+      setSubmitError(err instanceof ApiError ? err.messages[0] : "Erro ao finalizar o pedido. Tente novamente.");
+    }
+  }
+
+  // Header comum
+  const header = (
+    <header className="sticky top-0 z-30 bg-white border-b border-ink-200">
+      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3">
+        <Link
+          href={`/stores/${slug}`}
+          className="inline-flex items-center gap-1.5 text-sm text-ink-700 hover:text-ink-900 transition-colors"
+        >
+          <Icon name="ArrowLeft" size={17} />
+          <span className="hidden sm:inline">Continuar comprando</span>
+          <span className="sm:hidden">Voltar</span>
+        </Link>
+        <div className="text-xs text-ink-500 inline-flex items-center gap-1.5">
+          <Icon name="ShieldCheck" size={14} className="text-brand-600" />
+          <span className="hidden sm:inline">Compra segura</span>
+        </div>
+      </div>
+    </header>
+  );
+
+  // Carrinho vazio
+  if (items.length === 0 && step !== "done") {
+    return (
+      <div className="min-h-screen w-full bg-ink-50/60">
+        {header}
+        <main className="max-w-[560px] mx-auto px-4 sm:px-6 py-16 flex flex-col items-center text-center">
+          <div className="h-16 w-16 rounded-full bg-ink-100 text-ink-400 grid place-items-center mb-4">
+            <Icon name="ShoppingBag" size={28} />
+          </div>
+          <h1 className="font-display font-extrabold text-2xl text-ink-900">Seu carrinho está vazio</h1>
+          <p className="mt-2 text-ink-500">Explore o catálogo e adicione produtos para finalizar seu pedido.</p>
+          <Link
+            href={`/stores/${slug}`}
+            className="mt-6 h-12 px-6 rounded-lg bg-brand-600 text-white font-medium hover:bg-brand-700 transition-all inline-flex items-center justify-center gap-2"
+          >
+            <Icon name="ArrowLeft" size={18} /> Voltar à loja
+          </Link>
+        </main>
+      </div>
+    );
+  }
+
+  // Pedido confirmado
+  if (step === "done" && doneData) {
+    return (
+      <div className="min-h-screen w-full bg-ink-50/60">
+        {header}
+        <OrderConfirmed
+          slug={slug}
+          orderId={doneData.order.id!}
+          total={Number(doneData.order.total ?? total)}
+          deliveryType={doneData.deliveryType}
+          paymentStatus={doneData.payment.status ?? "pending"}
+          paymentMethod={doneData.method}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen w-full bg-ink-50/60">
+      {header}
+      <main className="max-w-[1100px] mx-auto px-4 sm:px-6 py-6">
+        <div className="max-w-[520px] mx-auto mb-6">
+          <StepIndicator steps={STEPS} current={stepNum} />
+        </div>
+
+        {submitError && (
+          <div className="mb-4 max-w-2xl mx-auto rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 flex items-center gap-2">
+            <Icon name="CircleAlert" size={15} className="shrink-0" />
+            {submitError}
+            {step === "payment" && (
+              <AppButton variant="outline" size="sm" className="ml-auto" onClick={() => setSubmitError(null)}>
+                Tentar novamente
+              </AppButton>
+            )}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+          {/* Coluna principal */}
+          <div className="lg:col-span-2">
+            {step === "cart" && (
+              <CartStep
+                slug={slug}
+                coupon={coupon}
+                onCouponApplied={setCoupon}
+                onNext={() => { setStep("delivery"); window.scrollTo({ top: 0, behavior: "instant" }); }}
+              />
+            )}
+            {step === "delivery" && (
+              <DeliveryStep
+                slug={slug}
+                deliveryType={deliveryType}
+                addressId={addressId}
+                onDeliveryType={setDeliveryType}
+                onAddress={setAddressId}
+                onNext={() => { setStep("payment"); window.scrollTo({ top: 0, behavior: "instant" }); }}
+                onBack={() => { setStep("cart"); window.scrollTo({ top: 0, behavior: "instant" }); }}
+              />
+            )}
+            {step === "payment" && (
+              <PaymentStep
+                method={method}
+                total={total}
+                submitting={submitting}
+                onMethod={setMethod}
+                onConfirm={handleConfirm}
+                onBack={() => { setStep("delivery"); window.scrollTo({ top: 0, behavior: "instant" }); }}
+              />
+            )}
+          </div>
+
+          {/* Resumo (sticky) */}
+          <aside className="lg:sticky lg:top-24">
+            <OrderSummary
+              items={items}
+              coupon={coupon}
+              deliveryFee={deliveryType === "delivery" ? DELIVERY_FEE : 0}
+              showDelivery={showDelivery}
+            />
+          </aside>
+        </div>
+      </main>
+    </div>
+  );
+}

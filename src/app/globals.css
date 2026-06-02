@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-ink-50 text-ink-900 font-sans antialiased;
+  }
+}
+
+@layer utilities {
+  /* Padrão de pontos usado nos painéis decorativos e ícones de produto */
+  .dot-grid {
+    background-image: radial-gradient(currentColor 1px, transparent 1px);
+    background-size: 16px 16px;
+    color: rgb(255 255 255 / 0.25);
+  }
+
+  /* Scrollbar fina (listas, drawers) */
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: theme("colors.ink.300") transparent;
+  }
+  .scroll-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scroll-thin::-webkit-scrollbar-thumb {
+    background-color: theme("colors.ink.300");
+    border-radius: 9999px;
+  }
+
+  /* Animações de entrada referenciadas no design */
+  .screen-enter {
+    animation: theme("animation.fade-in");
+  }
+  .card-enter,
+  .row-enter {
+    animation: theme("animation.slide-up");
+  }
+  .modal-enter {
+    animation: theme("animation.scale-in");
+  }
+  .backdrop-enter {
+    animation: theme("animation.fade-in");
+  }
+}
