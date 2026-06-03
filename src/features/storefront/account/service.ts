@@ -7,12 +7,21 @@ export type Address = Schemas["ResponseAddress"];
 export type RequestAddress = Schemas["RequestAddress"];
 export type Review = Schemas["ResponseReview"];
 export type RequestCreateReview = Schemas["RequestCreateReview"];
+export type CustomerOrder = Schemas["ResponseOrder"];
 
 const enc = encodeURIComponent;
 
 export async function listAddresses(slug: string): Promise<Address[]> {
   const data = await api.get<Schemas["ResponseAddresses"]>(`/stores/${enc(slug)}/addresses`);
   return data.addresses ?? [];
+}
+
+/** Histórico de pedidos do cliente autenticado na loja. */
+export async function listCustomerOrders(slug: string, status?: string): Promise<CustomerOrder[]> {
+  const data = await api.get<Schemas["ResponseCustomerOrders"]>(`/stores/${enc(slug)}/orders`, {
+    query: { status },
+  });
+  return data.orders ?? [];
 }
 
 export async function createAddress(slug: string, body: RequestAddress): Promise<Address> {

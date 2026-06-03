@@ -1,13 +1,28 @@
 "use client";
 
-import { useState } from "react";
-import { AppButton, AppErrorState, AppSpinner, Icon } from "@/components/ui";
+import { useMemo, useState } from "react";
+import { AppBadge, AppButton, AppErrorState, AppSpinner, Icon } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { usePlans } from "../hooks";
 import type { Plan } from "../service";
 
+/** Formata BRL: inteiro sem casas, fracionário com 2 casas. */
 const BRL = (n: number) =>
-  n === 0 ? "R$ 0" : "R$ " + n.toLocaleString("pt-BR");
+  "R$ " +
+  n.toLocaleString("pt-BR", {
+    minimumFractionDigits: Number.isInteger(n) ? 0 : 2,
+    maximumFractionDigits: 2,
+  });
+
+/** Coerção segura: `price`/`annualPrice` chegam como number | string | null. */
+const num = (v: number | string | null | undefined) => {
+  const n = Number(v ?? 0);
+  return Number.isFinite(n) ? n : 0;
+};
+
+/** Limite de usuários: `null`/ausente = ilimitado. */
+const usersLabel = (max: number | null | undefined) =>
+  max == null ? "Ilimitado" : `Até ${max}`;
 
 type Props = {
   submitting?: boolean;
@@ -19,6 +34,24 @@ export function Step3Plan({ submitting, onConfirm, onBack }: Props) {
   const { data: plans = [], isLoading, isError } = usePlans();
   const [selected, setSelected] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<Plan | null>(null);
+
+  // Toggle mensal/anual só aparece se algum plano expõe preço anual.
+  const hasAnnual = useMemo(
+    () => plans.some((p) => p.annualPrice != null && num(p.annualPrice) > 0),
+    [plans],
+  );
+  const [annual, setAnnual] = useState(false);
+
+  // Economia anual headline (maior % entre os planos), arredondada.
+  const savingsPct = useMemo(() => {
+    let best = 0;
+    for (const p of plans) {
+      const m = num(p.price);
+      const a = num(p.annualPrice);
+      if (m > 0 && a > 0) best = Math.max(best, 1 - a / (m * 12));
+    }
+    return Math.round(best * 100);
+  }, [plans]);
 
   if (isLoading) {
     return (
@@ -32,9 +65,14 @@ export function Step3Plan({ submitting, onConfirm, onBack }: Props) {
     return <AppErrorState title="Erro ao carregar planos" error={null} />;
   }
 
+  /** Preço mensal exibido: no anual, é o total/12 (equivalente mensal). */
+  const monthlyShown = (plan: Plan) => {
+    const annualTotal = num(plan.annualPrice);
+    return annual && annualTotal > 0 ? annualTotal / 12 : num(plan.price);
+  };
+
   return (
     <>
-      {/* Toggle cobrança (decorativo — API não retorna preço anual separado) */}
       <div className="mt-10 text-center">
         <h2 className="font-display font-extrabold text-2xl sm:text-[30px] text-ink-900 tracking-tight text-balance">
           Escolha o plano ideal para o seu negócio
@@ -42,14 +80,48 @@ export function Step3Plan({ submitting, onConfirm, onBack }: Props) {
         <p className="mt-2 text-ink-500">Comece grátis e faça upgrade quando quiser.</p>
       </div>
 
+      {/* Toggle de cobrança (apenas quando há preço anual) */}
+      {hasAnnual && (
+        <div className="mt-7 flex items-center justify-center gap-3">
+          <span className={cn("text-sm font-medium", !annual ? "text-ink-900" : "text-ink-400")}>
+            Mensal
+          </span>
+          <button
+            type="button"
+            onClick={() => setAnnual((a) => !a)}
+            className={cn(
+              "relative h-7 w-12 rounded-full transition-colors",
+              annual ? "bg-brand-600" : "bg-ink-300",
+            )}
+            aria-label="Alternar cobrança anual"
+          >
+            <span
+              className={cn(
+                "absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-all",
+                annual ? "left-6" : "left-1",
+              )}
+            />
+          </button>
+          <span className={cn("text-sm font-medium", annual ? "text-ink-900" : "text-ink-400")}>
+            Anual
+          </span>
+          {savingsPct > 0 && (
+            <AppBadge tone="success" size="sm">
+              Economize {savingsPct}%
+            </AppBadge>
+          )}
+        </div>
+      )}
+
       {/* Cards de planos */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
         {plans.map((plan, idx) => {
-          const price = Number(plan.price ?? 0);
+          const price = monthlyShown(plan);
+          const annualTotal = num(plan.annualPrice);
           const isSel = selected === plan.id;
           const isHighlight = idx === 1 && plans.length >= 3;
-          const hasTrial = Number(plan.trialDays ?? 0) > 0;
-          const productLimit = plan.productLimit;
+          const hasTrial = num(plan.trialDays) > 0;
+          const features = plan.features ?? [];
 
           return (
             <div
@@ -72,6 +144,7 @@ export function Step3Plan({ submitting, onConfirm, onBack }: Props) {
                 </div>
               )}
 
+              {/* Header do card */}
               <div className="flex items-center gap-2.5">
                 <span
                   className={cn(
@@ -86,34 +159,53 @@ export function Step3Plan({ submitting, onConfirm, onBack }: Props) {
                 </div>
               </div>
 
+              {/* Tagline */}
+              {plan.description && (
+                <p className="mt-3 text-sm text-ink-500 leading-snug">{plan.description}</p>
+              )}
+
+              {/* Preço */}
               <div className="mt-5 flex items-end gap-1.5">
                 <span className="font-display font-extrabold text-[36px] leading-none tracking-tight text-ink-900">
                   {BRL(price)}
                 </span>
                 {price > 0 && <span className="text-ink-500 text-sm mb-1">/mês</span>}
               </div>
-              {hasTrial && (
-                <p className="mt-1 text-[12px] text-brand-700 font-medium">
-                  {plan.trialDays} dias grátis para testar
-                </p>
-              )}
+              <div className="mt-1 h-4 text-[12.5px] text-ink-400">
+                {price > 0 && annual && annualTotal > 0
+                  ? `Cobrado anualmente (${BRL(annualTotal)}/ano)`
+                  : price > 0
+                    ? "Cobrado mensalmente"
+                    : "Para sempre"}
+              </div>
 
-              {/* Limites */}
+              {/* Limites estruturados (Plan DTO) */}
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <div className="rounded-lg bg-ink-50 border border-ink-100 px-3 py-2">
                   <div className="text-[11px] text-ink-500">Produtos</div>
                   <div className="text-[13px] font-display font-semibold text-ink-900 flex items-center gap-1">
                     <Icon name="Package" size={13} className="text-brand-600" />
-                    {productLimit == null ? "Ilimitado" : `Até ${productLimit}`}
+                    {plan.productLimit == null ? "Ilimitado" : `Até ${plan.productLimit}`}
                   </div>
                 </div>
-                <div className="rounded-lg bg-ink-50 border border-ink-100 px-3 py-2">
-                  <div className="text-[11px] text-ink-500">Preço</div>
-                  <div className="text-[13px] font-display font-semibold text-ink-900 flex items-center gap-1">
-                    <Icon name="CreditCard" size={13} className="text-brand-600" />
-                    {price === 0 ? "Grátis" : BRL(price) + "/mês"}
+                {/* Usuários quando o backend expõe maxUsers; senão, Preço (fallback). */}
+                {plan.maxUsers !== undefined ? (
+                  <div className="rounded-lg bg-ink-50 border border-ink-100 px-3 py-2">
+                    <div className="text-[11px] text-ink-500">Usuários</div>
+                    <div className="text-[13px] font-display font-semibold text-ink-900 flex items-center gap-1">
+                      <Icon name="Users" size={13} className="text-brand-600" />
+                      {usersLabel(plan.maxUsers)}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="rounded-lg bg-ink-50 border border-ink-100 px-3 py-2">
+                    <div className="text-[11px] text-ink-500">Preço</div>
+                    <div className="text-[13px] font-display font-semibold text-ink-900 flex items-center gap-1">
+                      <Icon name="CreditCard" size={13} className="text-brand-600" />
+                      {price === 0 ? "Grátis" : BRL(price) + "/mês"}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* CTA */}
@@ -135,6 +227,20 @@ export function Step3Plan({ submitting, onConfirm, onBack }: Props) {
                 <p className="mt-1.5 text-center text-[11.5px] text-ink-500">
                   {plan.trialDays} dias grátis · depois {BRL(price)}/mês
                 </p>
+              )}
+
+              {/* Recursos (string[] — todos incluídos) */}
+              {features.length > 0 && (
+                <ul className="mt-6 space-y-2.5 flex-1">
+                  {features.map((f, i) => (
+                    <li key={i} className="flex items-start gap-2.5 text-sm">
+                      <span className="mt-0.5 h-4 w-4 rounded-full grid place-items-center shrink-0 bg-brand-100 text-brand-700">
+                        <Icon name="Check" size={11} strokeWidth={3} />
+                      </span>
+                      <span className="text-ink-700">{f}</span>
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
           );
@@ -164,6 +270,7 @@ export function Step3Plan({ submitting, onConfirm, onBack }: Props) {
       {confirming && (
         <PlanConfirmModal
           plan={confirming}
+          annual={annual}
           submitting={submitting}
           onClose={() => setConfirming(null)}
           onConfirm={() => onConfirm(confirming.id!)}
@@ -175,18 +282,22 @@ export function Step3Plan({ submitting, onConfirm, onBack }: Props) {
 
 function PlanConfirmModal({
   plan,
+  annual,
   submitting,
   onClose,
   onConfirm,
 }: {
   plan: Plan;
+  annual: boolean;
   submitting?: boolean;
   onClose: () => void;
   onConfirm: () => void;
 }) {
-  const price = Number(plan.price ?? 0);
-  const hasTrial = Number(plan.trialDays ?? 0) > 0;
-  const isFree = price === 0;
+  const annualTotal = num(plan.annualPrice);
+  const useAnnual = annual && annualTotal > 0;
+  const monthly = useAnnual ? annualTotal / 12 : num(plan.price);
+  const hasTrial = num(plan.trialDays) > 0;
+  const isFree = monthly === 0;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
@@ -202,7 +313,7 @@ function PlanConfirmModal({
 
         <div className="flex items-center gap-3">
           <span className="h-12 w-12 rounded-xl bg-brand-100 text-brand-700 grid place-items-center">
-            <Icon name={price === 0 ? "Sparkles" : "Rocket"} size={24} />
+            <Icon name={monthly === 0 ? "Sparkles" : "Rocket"} size={24} />
           </span>
           <div>
             <div className="text-xs text-ink-500">Plano selecionado</div>
@@ -220,15 +331,19 @@ function PlanConfirmModal({
               <div className="flex items-center justify-between px-4 py-3 text-sm">
                 <span className="text-ink-500">Após {plan.trialDays} dias</span>
                 <span className="font-medium text-ink-900 tabular-nums">
-                  {BRL(price)}/mês
+                  {useAnnual ? `${BRL(annualTotal)}/ano` : `${BRL(monthly)}/mês`}
                 </span>
               </div>
             </>
           ) : (
             <div className="flex items-center justify-between px-4 py-3 text-sm">
-              <span className="text-ink-500">Plano {isFree ? "gratuito" : "mensal"}</span>
+              <span className="text-ink-500">Plano {isFree ? "gratuito" : useAnnual ? "anual" : "mensal"}</span>
               <span className="font-display font-bold text-brand-700">
-                {isFree ? "R$ 0,00 para sempre" : BRL(price) + "/mês"}
+                {isFree
+                  ? "R$ 0,00 para sempre"
+                  : useAnnual
+                    ? `${BRL(annualTotal)}/ano`
+                    : `${BRL(monthly)}/mês`}
               </span>
             </div>
           )}
@@ -236,6 +351,12 @@ function PlanConfirmModal({
             <div className="flex items-center justify-between px-4 py-3 text-sm">
               <span className="text-ink-500">Limite de produtos</span>
               <span className="font-medium text-ink-900">Até {plan.productLimit}</span>
+            </div>
+          )}
+          {plan.maxUsers !== undefined && (
+            <div className="flex items-center justify-between px-4 py-3 text-sm">
+              <span className="text-ink-500">Usuários</span>
+              <span className="font-medium text-ink-900">{usersLabel(plan.maxUsers)}</span>
             </div>
           )}
         </div>

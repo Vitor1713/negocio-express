@@ -9,8 +9,14 @@ export type CatalogVariant = Schemas["ResponseCatalogVariant"];
 export type CatalogImage = Schemas["ResponseCatalogImage"];
 export type CatalogReview = Schemas["ResponseCatalogReview"];
 export type StoreCategory = Schemas["ResponseCategory"];
+export type PublicStore = Schemas["ResponsePublicStore"];
 
 const enc = encodeURIComponent;
+
+/** Dados públicos da loja (nome, status, taxa/mínimo de entrega) — para header e SEO. */
+export async function getStore(slug: string): Promise<PublicStore> {
+  return api.get<PublicStore>(`/stores/${enc(slug)}`, { auth: false });
+}
 
 /** Catálogo público de uma loja. Filtros opcionais via query (server-side). */
 export async function listStoreProducts(

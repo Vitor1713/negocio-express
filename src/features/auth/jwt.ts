@@ -3,10 +3,15 @@
  * A validação real é responsabilidade da API; aqui só lemos role/store_id
  * para roteamento e UI. Nunca confie nisto para autorização sensível.
  */
-export type Role = "Owner" | "Lojista" | "Customer" | string;
+/** Tipo da conta (claim `role`): distingue usuário de loja x cliente. */
+export type Role = "StoreUser" | "Lojista" | "Customer" | string;
+/** Papel dentro da loja (claim `store_role`): base das permissões do painel. */
+export type StoreRole = "Owner" | "Manager" | "Staff" | string;
 
 export type AuthClaims = {
   role: Role | null;
+  /** Papel na loja (Owner/Manager/Staff) — usar nas guardas de permissão. */
+  storeRole: StoreRole | null;
   storeId: string | null;
   email: string | null;
   sub: string | null;
@@ -20,6 +25,7 @@ const ROLE_KEYS = [
   "roles",
   "http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
 ];
+const STORE_ROLE_KEYS = ["store_role", "storeRole"];
 const STORE_KEYS = ["store_id", "storeId", "store"];
 const EMAIL_KEYS = [
   "email",
@@ -49,6 +55,7 @@ export function decodeToken(token: string): AuthClaims | null {
     const payload = JSON.parse(base64UrlDecode(payloadSegment)) as Record<string, unknown>;
     return {
       role: pick(payload, ROLE_KEYS),
+      storeRole: pick(payload, STORE_ROLE_KEYS),
       storeId: pick(payload, STORE_KEYS),
       email: pick(payload, EMAIL_KEYS) ?? pick(payload, ["sub"]),
       sub: pick(payload, ["sub", "nameid"]),

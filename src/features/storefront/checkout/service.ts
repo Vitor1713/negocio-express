@@ -4,11 +4,24 @@ import type { components } from "@/lib/api-types";
 type Schemas = components["schemas"];
 
 export type OrderResponse = Schemas["ResponseOrder"];
+export type OrderPreview = Schemas["ResponseOrderPreview"];
 export type PaymentResponse = Schemas["ResponsePayment"];
 export type ValidatedCoupon = Schemas["ResponseValidatedCoupon"];
 export type Address = Schemas["ResponseAddress"];
 
 const enc = encodeURIComponent;
+
+/**
+ * Calcula subtotal/frete/desconto/total no backend antes de confirmar
+ * (POST /stores/{slug}/orders/preview). Fonte da verdade dos valores — o
+ * cálculo client-side (`calcTotals`) é só fallback enquanto isto carrega.
+ */
+export async function previewOrder(
+  slug: string,
+  body: Schemas["RequestCreateOrder"],
+): Promise<OrderPreview> {
+  return api.post<OrderPreview>(`/stores/${enc(slug)}/orders/preview`, body);
+}
 
 export async function validateCoupon(slug: string, code: string, subtotal: number): Promise<ValidatedCoupon> {
   return api.post<ValidatedCoupon>(`/stores/${enc(slug)}/coupons/validate`, { code, subtotal }, { auth: false });

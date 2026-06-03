@@ -1,11 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AppButton, AppDrawer, AppField, AppInput, Icon } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { VEHICLE_TYPE } from "../vehicle";
+import type { Deliverer } from "../service";
 
 const schema = z.object({
   name: z.string().min(2, "Informe o nome completo."),
@@ -14,6 +16,7 @@ const schema = z.object({
     .transform((v) => v.replace(/\D/g, ""))
     .pipe(z.string().min(10, "Telefone incompleto.")),
   vehicleType: z.string().min(1, "Selecione o veículo."),
+  isActive: z.boolean(),
 });
 
 export type DelivererFormValues = z.infer<typeof schema>;
@@ -25,15 +28,38 @@ function formatPhone(raw: string) {
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
 }
 
+const EMPTY: DelivererFormValues = {
+  name: "",
+  phone: "",
+  vehicleType: "Motorcycle",
+  isActive: true,
+};
+
 type Props = {
   open: boolean;
+  /** null = criar; objeto = editar (prefill direto, sem GET por id). */
+  deliverer: Deliverer | null;
   saving?: boolean;
+  deleting?: boolean;
   error?: string | null;
   onClose: () => void;
   onSave: (values: DelivererFormValues) => void;
+  onDelete: () => void;
 };
 
-export function DelivererForm({ open, saving, error, onClose, onSave }: Props) {
+export function DelivererForm({
+  open,
+  deliverer,
+  saving,
+  deleting,
+  error,
+  onClose,
+  onSave,
+  onDelete,
+}: Props) {
+  const isEdit = !!deliverer;
+  const [confirmDel, setConfirmDel] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -41,15 +67,28 @@ export function DelivererForm({ open, saving, error, onClose, onSave }: Props) {
     setValue,
     reset,
     formState: { errors },
-  } = useForm<DelivererFormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: { name: "", phone: "", vehicleType: "motorcycle" },
-  });
+  } = useForm<DelivererFormValues>({ resolver: zodResolver(schema), defaultValues: EMPTY });
+
+  useEffect(() => {
+    if (!open) return;
+    setConfirmDel(false);
+    if (deliverer) {
+      reset({
+        name: deliverer.name ?? "",
+        phone: deliverer.phone ? formatPhone(deliverer.phone) : "",
+        vehicleType: deliverer.vehicleType ?? "Motorcycle",
+        isActive: deliverer.isActive ?? true,
+      });
+    } else {
+      reset(EMPTY);
+    }
+  }, [open, deliverer, reset]);
 
   const vehicleType = watch("vehicleType");
+  const isActive = watch("isActive");
 
   function handleClose() {
-    reset();
+    reset(EMPTY);
     onClose();
   }
 
@@ -58,18 +97,24 @@ export function DelivererForm({ open, saving, error, onClose, onSave }: Props) {
       open={open}
       onClose={handleClose}
       icon="Bike"
-      title="Novo entregador"
-      subtitle="Cadastrar um entregador da loja"
+      title={isEdit ? "Editar entregador" : "Novo entregador"}
+      subtitle={isEdit ? "Atualize os dados do entregador" : "Cadastrar um entregador da loja"}
       footer={
-        <AppButton
-          type="submit"
-          form="deliverer-form"
-          fullWidth
-          icon="Check"
-          loading={saving}
-        >
-          Salvar
-        </AppButton>
+        <div className="flex gap-2">
+          {isEdit &&
+            (confirmDel ? (
+              <AppButton variant="danger" icon="Trash2" loading={deleting} onClick={onDelete}>
+                Confirmar
+              </AppButton>
+            ) : (
+              <AppButton variant="outline" icon="Trash2" onClick={() => setConfirmDel(true)}>
+                Excluir
+              </AppButton>
+            ))}
+          <AppButton type="submit" form="deliverer-form" fullWidth icon="Check" loading={saving}>
+            Salvar
+          </AppButton>
+        </div>
       }
     >
       <form id="deliverer-form" onSubmit={handleSubmit(onSave)} className="p-5 space-y-4" noValidate>
@@ -124,6 +169,27 @@ export function DelivererForm({ open, saving, error, onClose, onSave }: Props) {
             })}
           </div>
         </AppField>
+
+        <button
+          type="button"
+          onClick={() => setValue("isActive", !isActive, { shouldDirty: true })}
+          className="w-full flex items-center justify-between p-3 rounded-lg border border-ink-200 bg-ink-50/40 text-left"
+        >
+          <span className="text-sm font-medium text-ink-900">Disponível para entregas</span>
+          <span
+            className={cn(
+              "relative h-6 w-11 rounded-full transition-colors shrink-0",
+              isActive ? "bg-brand-600" : "bg-ink-300",
+            )}
+          >
+            <span
+              className={cn(
+                "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-all",
+                isActive ? "left-[22px]" : "left-0.5",
+              )}
+            />
+          </span>
+        </button>
       </form>
     </AppDrawer>
   );

@@ -119,7 +119,7 @@ export function AccountPage({ slug }: Props) {
           {/* Conteúdo da tab */}
           <div className="md:col-span-3">
             {activeTab === "addresses" && <AddressesTab slug={slug} />}
-            {activeTab === "orders" && <OrdersTab />}
+            {activeTab === "orders" && <OrdersTab slug={slug} />}
             {activeTab === "reviews" && <ReviewsTab slug={slug} />}
           </div>
         </div>

@@ -1,10 +1,40 @@
-import { useMutation } from "@tanstack/react-query";
-import { addTeamMember, type RequestAddTeamMember } from "./service";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  addTeamMember,
+  listTeam,
+  removeTeamMember,
+  updateTeamMember,
+  type RequestAddTeamMember,
+  type RequestUpdateTeamMember,
+} from "./service";
 
-/**
- * Não há GET /team no contrato — só POST. A listagem é mantida na sessão
- * (estado do componente) com os membros adicionados durante o uso.
- */
+export const TEAM_KEY = ["team"] as const;
+
+export function useTeam() {
+  return useQuery({ queryKey: TEAM_KEY, queryFn: listTeam });
+}
+
 export function useAddTeamMember() {
-  return useMutation({ mutationFn: (body: RequestAddTeamMember) => addTeamMember(body) });
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: RequestAddTeamMember) => addTeamMember(body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: TEAM_KEY }),
+  });
+}
+
+export function useUpdateTeamMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ memberId, body }: { memberId: string; body: RequestUpdateTeamMember }) =>
+      updateTeamMember(memberId, body),
+    onSuccess: () => qc.invalidateQueries({ queryKey: TEAM_KEY }),
+  });
+}
+
+export function useRemoveTeamMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (memberId: string) => removeTeamMember(memberId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: TEAM_KEY }),
+  });
 }

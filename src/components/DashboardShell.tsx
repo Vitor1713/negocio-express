@@ -16,6 +16,8 @@ type NavItem = {
 const NAV: NavItem[] = [
   { href: "/dashboard", label: "Início", icon: "LayoutDashboard" },
   { href: "/dashboard/products", label: "Produtos", icon: "Package" },
+  { href: "/dashboard/categories", label: "Categorias", icon: "Tags" },
+  { href: "/dashboard/coupons", label: "Cupons", icon: "Ticket" },
   { href: "/dashboard/orders", label: "Pedidos", icon: "ShoppingBag" },
   { href: "/dashboard/deliverers", label: "Entregadores", icon: "Bike" },
   { href: "/dashboard/team", label: "Equipe", icon: "Users" },

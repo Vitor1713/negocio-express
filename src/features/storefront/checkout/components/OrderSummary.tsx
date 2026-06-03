@@ -1,22 +1,35 @@
 import { storeBRL } from "../../format";
+import { Icon } from "@/components/ui";
 import type { CartItem } from "../../cart-context";
-import type { ValidatedCoupon } from "../service";
+import type { OrderPreview, ValidatedCoupon } from "../service";
 
 type Props = {
   items: CartItem[];
   coupon: ValidatedCoupon | null;
   deliveryFee: number;
   showDelivery: boolean;
+  /** Totais autoritativos do backend; quando presentes, têm prioridade. */
+  preview?: OrderPreview | null;
+  previewLoading?: boolean;
 };
 
-export function OrderSummary({ items, coupon, deliveryFee, showDelivery }: Props) {
-  const subtotal = items.reduce((s, i) => s + i.finalPrice * i.qty, 0);
-  const discount = coupon ? Number(coupon.discountAmount ?? 0) : 0;
-  const total = Math.max(0, subtotal + (showDelivery ? deliveryFee : 0) - discount);
+export function OrderSummary({ items, coupon, deliveryFee, showDelivery, preview, previewLoading }: Props) {
+  const clientSubtotal = items.reduce((s, i) => s + i.finalPrice * i.qty, 0);
+  const clientDiscount = coupon ? Number(coupon.discountAmount ?? 0) : 0;
+
+  const subtotal = preview ? Number(preview.subtotal ?? 0) : clientSubtotal;
+  const fee = preview ? Number(preview.deliveryFee ?? 0) : deliveryFee;
+  const discount = preview ? Number(preview.discountAmount ?? 0) : clientDiscount;
+  const total = preview
+    ? Number(preview.total ?? 0)
+    : Math.max(0, clientSubtotal + (showDelivery ? deliveryFee : 0) - clientDiscount);
 
   return (
     <div className="bg-white border border-ink-200 rounded-2xl shadow-soft p-5 sm:p-6">
-      <h2 className="font-display font-bold text-ink-900 mb-4">Resumo do pedido</h2>
+      <h2 className="font-display font-bold text-ink-900 mb-4 flex items-center gap-2">
+        Resumo do pedido
+        {previewLoading && <Icon name="LoaderCircle" size={14} className="animate-spin text-ink-400" />}
+      </h2>
 
       <div className="space-y-2 mb-4 max-h-[160px] overflow-y-auto scroll-thin">
         {items.map((item) => (
@@ -43,7 +56,7 @@ export function OrderSummary({ items, coupon, deliveryFee, showDelivery }: Props
         {showDelivery && (
           <div className="flex justify-between text-ink-700">
             <span>Taxa de entrega</span>
-            <span className="tabular-nums">{deliveryFee === 0 ? "Grátis" : storeBRL(deliveryFee)}</span>
+            <span className="tabular-nums">{fee === 0 ? "Grátis" : storeBRL(fee)}</span>
           </div>
         )}
         {discount > 0 && (

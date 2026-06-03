@@ -100,7 +100,7 @@ export default function RegisterPage() {
       </header>
 
       <main className="w-full px-6 pb-16">
-        <div className="mx-auto max-w-[540px] pt-8">
+        <div className={`mx-auto pt-8 ${step === 3 ? "max-w-[1040px]" : "max-w-[540px]"}`}>
           {/* Erro de submissão */}
           {submitError && (
             <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 flex items-center gap-2">
@@ -119,8 +119,8 @@ export default function RegisterPage() {
             )}
           </div>
 
-          {/* Step indicator */}
-          <div className="mt-8">
+          {/* Step indicator (centralizado e estreito mesmo no passo largo do plano) */}
+          <div className="mt-8 mx-auto max-w-[560px]">
             <StepIndicator steps={STEPS} current={step} />
           </div>
 

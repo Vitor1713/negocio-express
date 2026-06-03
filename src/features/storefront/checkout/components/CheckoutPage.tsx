@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { AppButton, Icon } from "@/components/ui";
 import { ApiError } from "@/lib/api";
@@ -12,7 +12,7 @@ import { DeliveryStep } from "./DeliveryStep";
 import { PaymentStep } from "./PaymentStep";
 import { OrderConfirmed } from "./OrderConfirmed";
 import { OrderSummary, calcTotals } from "./OrderSummary";
-import { useCreateOrder, useCreatePayment } from "../hooks";
+import { useCreateOrder, useCreatePayment, usePreviewOrder } from "../hooks";
 import type { ValidatedCoupon, OrderResponse, PaymentResponse } from "../service";
 
 const STEPS = ["Carrinho", "Entrega", "Pagamento"];
@@ -45,7 +45,23 @@ export function CheckoutPage({ slug }: Props) {
 
   const stepNum = { cart: 1, delivery: 2, payment: 3, done: 3 }[step];
   const showDelivery = step !== "cart";
-  const { total } = calcTotals(items, coupon, deliveryType === "delivery" ? DELIVERY_FEE : 0, showDelivery);
+
+  // Body do preview (mesmo shape do pedido). Memo evita refetch a cada render.
+  const previewBody = useMemo(
+    () => ({
+      deliveryType,
+      addressId: deliveryType === "delivery" ? addressId : null,
+      couponCode: coupon?.code ?? null,
+      items: items.map((i) => ({ productVariantId: i.variantId, quantity: i.qty })),
+    }),
+    [deliveryType, addressId, coupon?.code, items],
+  );
+
+  const preview = usePreviewOrder(slug, previewBody, showDelivery);
+
+  // Total autoritativo do backend; fallback no cálculo client-side enquanto carrega.
+  const fallback = calcTotals(items, coupon, deliveryType === "delivery" ? DELIVERY_FEE : 0, showDelivery);
+  const total = preview.data ? Number(preview.data.total ?? 0) : fallback.total;
 
   const submitting = createOrder.isPending || createPayment.isPending;
 
@@ -212,6 +228,8 @@ export function CheckoutPage({ slug }: Props) {
               coupon={coupon}
               deliveryFee={deliveryType === "delivery" ? DELIVERY_FEE : 0}
               showDelivery={showDelivery}
+              preview={showDelivery ? preview.data ?? null : null}
+              previewLoading={preview.isFetching}
             />
           </aside>
         </div>

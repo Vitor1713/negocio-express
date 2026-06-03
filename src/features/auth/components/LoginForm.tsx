@@ -19,18 +19,24 @@ type LoginFormProps = {
   onSubmit: (values: LoginValues) => void;
   loading?: boolean;
   serverError?: string | null;
+  /** Mensagem de sucesso/aviso (ex.: confirmação após redefinir a senha). */
+  notice?: string | null;
   /** Texto do botão (ex.: "Entrar"). */
   submitLabel?: string;
   /** Destino do link "Cadastre-se" (painel → /register; vitrine → cadastro da loja). */
   registerHref?: string;
+  /** Destino do link "Esqueci minha senha". */
+  forgotHref?: string;
 };
 
 export function LoginForm({
   onSubmit,
   loading = false,
   serverError,
+  notice,
   submitLabel = "Entrar",
   registerHref = "/register",
+  forgotHref = "/forgot-password",
 }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -54,6 +60,16 @@ export function LoginForm({
 
   return (
     <form onSubmit={handleSubmit} noValidate className="mt-8 space-y-4">
+      {notice && (
+        <div
+          role="status"
+          className="flex items-start gap-2.5 rounded-lg border border-brand-200 bg-brand-50 px-3.5 py-3 text-sm text-brand-800"
+        >
+          <Icon name="CircleCheck" size={17} className="mt-0.5 shrink-0" />
+          <span>{notice}</span>
+        </div>
+      )}
+
       {serverError && (
         <div
           role="alert"
@@ -97,13 +113,12 @@ export function LoginForm({
           />
           Lembrar de mim
         </label>
-        {/* Placeholder: sem endpoint de reset no contrato ainda. */}
-        <button
-          type="button"
+        <Link
+          href={forgotHref}
           className="text-sm font-medium text-brand-700 hover:text-brand-800 hover:underline"
         >
           Esqueci minha senha
-        </button>
+        </Link>
       </div>
 
       <AppButton type="submit" size="lg" fullWidth loading={loading} iconRight="ArrowRight">
