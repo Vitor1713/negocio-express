@@ -7,17 +7,19 @@ import { AppBadge, AppButton, Icon } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { storeBRL, fmtReviewDate } from "../format";
 import { useCart } from "../cart-context";
-import type { CatalogProductDetail } from "../service";
+import type { CatalogProductDetail, PublicStore } from "../service";
 import { StarRating } from "./StarRating";
 import { StoreFooter } from "./StoreFooter";
 
 type Props = {
   slug: string;
   storeName: string;
+  /** Dados públicos da loja (contato, entrega) — para o rodapé. Opcional em fallback. */
+  store?: PublicStore | null;
   product: CatalogProductDetail;
 };
 
-export function ProductDetail({ slug, storeName, product }: Props) {
+export function ProductDetail({ slug, storeName, store, product }: Props) {
   const { addItem, count } = useCart();
   const variants = product.variants ?? [];
   const images = [...(product.images ?? [])].sort(
@@ -258,7 +260,7 @@ export function ProductDetail({ slug, storeName, product }: Props) {
         </div>
       </main>
 
-      <StoreFooter storeName={storeName} />
+      <StoreFooter storeName={storeName} store={store} />
     </div>
   );
 }

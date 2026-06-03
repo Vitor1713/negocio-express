@@ -7,16 +7,17 @@ import {
   getStoreProduct,
   storeNameFromSlug,
   type CatalogProductDetail,
+  type PublicStore,
 } from "@/features/storefront";
 
 type Params = { params: Promise<{ slug: string; prodSlug: string }> };
 
-/** Nome real da loja (GET /stores/{slug}), com fallback no nome derivado do slug. */
-async function resolveStoreName(slug: string): Promise<string> {
+/** Dados públicos da loja (GET /stores/{slug}); null em falha — header/rodapé usam fallback. */
+async function resolveStore(slug: string): Promise<PublicStore | null> {
   try {
-    return (await getStore(slug)).name ?? storeNameFromSlug(slug);
+    return await getStore(slug);
   } catch {
-    return storeNameFromSlug(slug);
+    return null;
   }
 }
 
@@ -31,7 +32,7 @@ async function fetchProduct(slug: string, prodSlug: string): Promise<CatalogProd
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug, prodSlug } = await params;
-  const storeName = await resolveStoreName(slug);
+  const storeName = (await resolveStore(slug))?.name ?? storeNameFromSlug(slug);
   try {
     const product = await getStoreProduct(slug, prodSlug);
     const desc = product.description?.slice(0, 160) || `Compre ${product.name} em ${storeName}.`;
@@ -54,9 +55,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function StoreProductPage({ params }: Params) {
   const { slug, prodSlug } = await params;
-  const [product, storeName] = await Promise.all([
+  const [product, store] = await Promise.all([
     fetchProduct(slug, prodSlug),
-    resolveStoreName(slug),
+    resolveStore(slug),
   ]);
-  return <ProductDetail slug={slug} storeName={storeName} product={product} />;
+  const storeName = store?.name ?? storeNameFromSlug(slug);
+  return <ProductDetail slug={slug} storeName={storeName} store={store} product={product} />;
 }

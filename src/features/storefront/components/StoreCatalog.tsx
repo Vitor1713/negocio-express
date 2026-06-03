@@ -192,7 +192,7 @@ export function StoreCatalog({ slug, storeName, store, initialProducts, categori
         )}
       </main>
 
-      <StoreFooter storeName={storeName} />
+      <StoreFooter storeName={storeName} store={store} />
     </div>
   );
 }
