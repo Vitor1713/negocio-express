@@ -21,8 +21,8 @@ const num = (v: number | string | null | undefined) => {
 };
 
 /** Limite de usuários: `null`/ausente = ilimitado. */
-const usersLabel = (max: number | null | undefined) =>
-  max == null ? "Ilimitado" : `Até ${max}`;
+const usersLabel = (max: number | string | null | undefined) =>
+  max == null ? "Ilimitado" : `Até ${num(max)}`;
 
 type Props = {
   submitting?: boolean;

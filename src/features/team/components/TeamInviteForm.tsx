@@ -8,6 +8,7 @@ import { cn } from "@/lib/cn";
 import { INVITABLE_ROLES, TEAM_ROLES } from "../roles";
 
 const schema = z.object({
+  name: z.string().min(2, "Informe o nome do membro."),
   email: z.string().email("E-mail inválido."),
   role: z.enum(INVITABLE_ROLES),
 });
@@ -32,7 +33,7 @@ export function TeamInviteForm({ open, saving, error, onClose, onSave }: Props) 
     formState: { errors },
   } = useForm<TeamInviteValues>({
     resolver: zodResolver(schema),
-    defaultValues: { email: "", role: "Staff" },
+    defaultValues: { name: "", email: "", role: "Staff" },
   });
 
   const role = watch("role");
@@ -64,12 +65,25 @@ export function TeamInviteForm({ open, saving, error, onClose, onSave }: Props) 
         )}
 
         <AppInput
+          label="Nome"
+          required
+          placeholder="Nome do membro"
+          icon="User"
+          error={errors.name?.message}
+          {...register("name")}
+        />
+
+        <AppInput
           label="E-mail"
           type="email"
           required
           placeholder="pessoa@email.com"
           icon="Mail"
-          hint={!errors.email?.message ? "O convite será enviado para este e-mail." : undefined}
+          hint={
+            !errors.email?.message
+              ? "Enviaremos um link para o membro definir a própria senha."
+              : undefined
+          }
           error={errors.email?.message}
           {...register("email")}
         />

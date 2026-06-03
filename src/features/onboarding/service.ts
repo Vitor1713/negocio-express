@@ -4,25 +4,11 @@ import type { components } from "@/lib/api-types";
 type Schemas = components["schemas"];
 
 /**
- * Campos que o design dos cards de plano exige mas que ainda NÃO existem no
- * `ResponseShortPlan` do openapi.json. O backend vai enriquecê-los; até lá são
- * opcionais e o card degrada (esconde o que faltar).
- *
- * TODO: remover este augment e usar só `Schemas["ResponseShortPlan"]` quando o
- * openapi.json incluir estes campos (regenerar via `npm run gen:api`).
+ * Plano exibido nos cards do onboarding. Os campos do design (description,
+ * annualPrice, maxUsers, features) já fazem parte do `ResponseShortPlan` no
+ * openapi.json — o card ainda degrada quando algum vier ausente.
  */
-export type PlanExtras = {
-  /** Frase curta sob o nome do plano (ex.: "Para negócios em crescimento."). */
-  description?: string | null;
-  /** Preço total do plano anual (habilita o toggle mensal/anual). */
-  annualPrice?: number | string | null;
-  /** Limite de usuários; `null` = ilimitado. */
-  maxUsers?: number | null;
-  /** Lista de recursos do plano (todos exibidos como incluídos no card). */
-  features?: string[] | null;
-};
-
-export type Plan = Schemas["ResponseShortPlan"] & PlanExtras;
+export type Plan = Schemas["ResponseShortPlan"];
 export type RegisterInput = Schemas["RequestRegister"];
 export type TokenResponse = Schemas["ResponseToken"];
 

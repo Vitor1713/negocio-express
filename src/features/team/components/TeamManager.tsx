@@ -51,7 +51,7 @@ export function TeamManager() {
   async function handleSave(values: TeamInviteValues) {
     setFormError(null);
     try {
-      await addMember.mutateAsync({ email: values.email, role: values.role });
+      await addMember.mutateAsync({ name: values.name, email: values.email, role: values.role });
       setFormOpen(false);
     } catch (err) {
       setFormError(err instanceof ApiError ? err.messages[0] : "Erro ao convidar membro.");
@@ -125,6 +125,7 @@ export function TeamManager() {
             {list.map((m) => {
               const r = roleInfo(m.role);
               const display = m.userName || m.userEmail || "—";
+              const pending = m.status === "Pending";
               return (
                 <div
                   key={m.id ?? m.userEmail}
@@ -139,10 +140,16 @@ export function TeamManager() {
                       <div className="text-[12.5px] text-ink-500 truncate">{m.userEmail}</div>
                     )}
                   </div>
-                  {m.createdAt && (
-                    <div className="hidden sm:block text-xs text-ink-400">
-                      desde {fmtDate(m.createdAt)}
-                    </div>
+                  {pending ? (
+                    <AppBadge tone="warning" size="sm">
+                      Convite pendente
+                    </AppBadge>
+                  ) : (
+                    m.createdAt && (
+                      <div className="hidden sm:block text-xs text-ink-400">
+                        desde {fmtDate(m.createdAt)}
+                      </div>
+                    )
                   )}
                   <AppBadge tone={r.tone} size="sm">
                     {r.label}
