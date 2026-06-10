@@ -11,38 +11,56 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { AppButton, AppInput, Icon } from "@/components/ui";
-import { loginSchema, type LoginValues } from "../schema";
+import { loginSchema, lojistaLoginSchema, type LojistaLoginValues } from "../schema";
 
-type FieldErrors = Partial<Record<keyof LoginValues, string>>;
+/** Valores emitidos: o painel inclui storeSlug; a vitrine, não. */
+export type LoginSubmitValues = LojistaLoginValues;
+
+type FieldErrors = Partial<Record<keyof LojistaLoginValues, string>>;
 
 type LoginFormProps = {
-  onSubmit: (values: LoginValues) => void;
+  onSubmit: (values: LoginSubmitValues) => void;
   loading?: boolean;
   serverError?: string | null;
+  /** Mensagem de sucesso/aviso (ex.: confirmação após redefinir a senha). */
+  notice?: string | null;
   /** Texto do botão (ex.: "Entrar"). */
   submitLabel?: string;
   /** Destino do link "Cadastre-se" (painel → /register; vitrine → cadastro da loja). */
   registerHref?: string;
+  /** Destino do link "Esqueci minha senha". */
+  forgotHref?: string;
+  /**
+   * Exibe o campo "Loja" (storeSlug), obrigatório no login do painel (lojista).
+   * Na vitrine fica `false`: a loja já vem do slug da rota.
+   */
+  storeField?: boolean;
 };
 
 export function LoginForm({
   onSubmit,
   loading = false,
   serverError,
+  notice,
   submitLabel = "Entrar",
   registerHref = "/register",
+  forgotHref = "/forgot-password",
+  storeField = false,
 }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [storeSlug, setStoreSlug] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    const result = loginSchema.safeParse({ email, password });
+    const result = storeField
+      ? lojistaLoginSchema.safeParse({ email, password, storeSlug })
+      : loginSchema.safeParse({ email, password });
     if (!result.success) {
       const next: FieldErrors = {};
       for (const issue of result.error.issues) {
-        const key = issue.path[0] as keyof LoginValues;
+        const key = issue.path[0] as keyof FieldErrors;
         next[key] ??= issue.message;
       }
       setErrors(next);
@@ -54,6 +72,16 @@ export function LoginForm({
 
   return (
     <form onSubmit={handleSubmit} noValidate className="mt-8 space-y-4">
+      {notice && (
+        <div
+          role="status"
+          className="flex items-start gap-2.5 rounded-lg border border-brand-200 bg-brand-50 px-3.5 py-3 text-sm text-brand-800"
+        >
+          <Icon name="CircleCheck" size={17} className="mt-0.5 shrink-0" />
+          <span>{notice}</span>
+        </div>
+      )}
+
       {serverError && (
         <div
           role="alert"
@@ -87,6 +115,20 @@ export function LoginForm({
         disabled={loading}
       />
 
+      {storeField && (
+        <AppInput
+          label="Loja"
+          icon="Store"
+          placeholder="identificador-da-loja"
+          autoComplete="organization"
+          hint="O identificador (slug) da sua loja, ex.: minha-loja."
+          value={storeSlug}
+          onChange={(e) => setStoreSlug(e.target.value)}
+          error={errors.storeSlug}
+          disabled={loading}
+        />
+      )}
+
       <div className="flex items-center justify-between pt-1">
         <label className="flex cursor-pointer items-center gap-2 text-sm text-ink-600">
           {/* Placeholder: persistência de sessão já é padrão; sem ação por ora. */}
@@ -97,13 +139,12 @@ export function LoginForm({
           />
           Lembrar de mim
         </label>
-        {/* Placeholder: sem endpoint de reset no contrato ainda. */}
-        <button
-          type="button"
+        <Link
+          href={forgotHref}
           className="text-sm font-medium text-brand-700 hover:text-brand-800 hover:underline"
         >
           Esqueci minha senha
-        </button>
+        </Link>
       </div>
 
       <AppButton type="submit" size="lg" fullWidth loading={loading} iconRight="ArrowRight">

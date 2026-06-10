@@ -85,14 +85,31 @@ export default function EditProductPage() {
         }
       }
 
-      // Imagem: se fornecida e diferente da atual, troca
-      const currentImageUrl = product!.images?.[0]?.url ?? "";
-      if (values.imageUrl && values.imageUrl !== currentImageUrl) {
-        // Remove imagens existentes
-        for (const img of product!.images ?? []) {
-          if (img.id) await deleteImage(img.id);
+      // Imagens — reconciliação por id (não há endpoint de update de imagem).
+      const existingImages = product!.images ?? [];
+      const formImageIds = new Set(values.images.map((img) => img.id).filter(Boolean));
+
+      // Remove as imagens do servidor que sumiram do form.
+      for (const img of existingImages) {
+        if (img.id && !formImageIds.has(img.id)) {
+          await deleteImage(img.id);
         }
-        await addImage(params.id, { url: values.imageUrl, displayOrder: 0, isCover: true });
+      }
+
+      // Novas (sem id) → addImage. Existentes com capa/ordem alterada → delete+readd.
+      for (const [i, img] of values.images.entries()) {
+        const desired = { url: img.url, displayOrder: i, isCover: i === 0 };
+        if (!img.id) {
+          await addImage(params.id, desired);
+          continue;
+        }
+        const server = existingImages.find((e) => e.id === img.id);
+        const serverOrder =
+          typeof server?.displayOrder === "number" ? server.displayOrder : undefined;
+        if (serverOrder !== i || (server?.isCover ?? false) !== desired.isCover) {
+          await deleteImage(img.id);
+          await addImage(params.id, desired);
+        }
       }
 
       qc.invalidateQueries({ queryKey: PRODUCTS_KEY });

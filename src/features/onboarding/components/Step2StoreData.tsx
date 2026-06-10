@@ -6,18 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AppButton, AppCard, AppInput, Icon } from "@/components/ui";
 import { cn } from "@/lib/cn";
-import type { IconName } from "@/components/ui";
+import { STORE_CATEGORIES } from "@/features/store/categories";
 
-const SEGMENTS: { key: string; label: string; icon: IconName }[] = [
-  { key: "restaurante", label: "Restaurante", icon: "UtensilsCrossed" },
-  { key: "padaria", label: "Padaria", icon: "Cookie" },
-  { key: "salao", label: "Salão / Beleza", icon: "Scissors" },
-  { key: "moda", label: "Moda & Roupas", icon: "Shirt" },
-  { key: "petshop", label: "Pet Shop", icon: "PawPrint" },
-  { key: "farmacia", label: "Farmácia", icon: "Pill" },
-  { key: "mercado", label: "Mercado", icon: "ShoppingBasket" },
-  { key: "outros", label: "Outros", icon: "Store" },
-];
+/** Segmentos = categorias de loja (fonte única, keys = enum do backend). */
+const SEGMENTS = STORE_CATEGORIES;
 
 function slugify(s: string) {
   return s

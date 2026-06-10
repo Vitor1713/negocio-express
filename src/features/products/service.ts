@@ -1,4 +1,5 @@
 import { api } from "@/lib/api";
+import { uploadImage } from "@/lib/upload-image";
 import type { components } from "@/lib/api-types";
 
 type Schemas = components["schemas"];
@@ -7,7 +8,8 @@ export type Product = Schemas["ResponseProduct"];
 export type ProductShort = Schemas["ResponseProductShort"];
 export type ProductVariant = Schemas["ResponseProductVariant"];
 export type ProductImage = Schemas["ResponseProductImage"];
-export type Category = Schemas["ResponseCategory"];
+// Categorias têm dono próprio (feature `categories`); reexporta p/ compatibilidade.
+export type { Category } from "@/features/categories/service";
 export type RequestProduct = Schemas["RequestProduct"];
 export type RequestProductVariant = Schemas["RequestProductVariant"];
 export type RequestProductImage = Schemas["RequestProductImage"];
@@ -53,7 +55,8 @@ export async function deleteImage(imageId: string): Promise<void> {
   return api.delete<void>(`/products/images/${imageId}`);
 }
 
-export async function listDashboardCategories(): Promise<Category[]> {
-  const data = await api.get<Schemas["ResponseCategories"]>("/categories");
-  return data.categories ?? [];
-}
+/** Sobe a imagem do produto ao Azure Blob via `/api/uploads`. Ver `lib/upload-image`. */
+export const uploadProductImage = uploadImage;
+
+// Reusa a fonte canônica da feature `categories` (evita duplicar GET /categories).
+export { listCategories as listDashboardCategories } from "@/features/categories/service";

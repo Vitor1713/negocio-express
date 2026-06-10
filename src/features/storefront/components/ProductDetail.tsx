@@ -7,17 +7,19 @@ import { AppBadge, AppButton, Icon } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { storeBRL, fmtReviewDate } from "../format";
 import { useCart } from "../cart-context";
-import type { CatalogProductDetail } from "../service";
+import type { CatalogProductDetail, PublicStore } from "../service";
 import { StarRating } from "./StarRating";
 import { StoreFooter } from "./StoreFooter";
 
 type Props = {
   slug: string;
   storeName: string;
+  /** Dados públicos da loja (contato, entrega) — para o rodapé. Opcional em fallback. */
+  store?: PublicStore | null;
   product: CatalogProductDetail;
 };
 
-export function ProductDetail({ slug, storeName, product }: Props) {
+export function ProductDetail({ slug, storeName, store, product }: Props) {
   const { addItem, count } = useCart();
   const variants = product.variants ?? [];
   const images = [...(product.images ?? [])].sort(
@@ -47,6 +49,7 @@ export function ProductDetail({ slug, storeName, product }: Props) {
         variantName: selected.name ?? "",
         finalPrice: price,
         stock,
+        imageUrl: cover,
       },
       qty,
     );
@@ -241,7 +244,7 @@ export function ProductDetail({ slug, storeName, product }: Props) {
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[13.5px] font-medium text-ink-900">Cliente verificado</span>
+                      <span className="text-[13.5px] font-medium text-ink-900">{r.customerName?.trim() || "Cliente verificado"}</span>
                       <span className="text-[11.5px] text-ink-400">{fmtReviewDate(r.createdAt)}</span>
                     </div>
                     <div className="mt-0.5">
@@ -258,7 +261,7 @@ export function ProductDetail({ slug, storeName, product }: Props) {
         </div>
       </main>
 
-      <StoreFooter storeName={storeName} />
+      <StoreFooter storeName={storeName} store={store} />
     </div>
   );
 }

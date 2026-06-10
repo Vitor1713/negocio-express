@@ -6,28 +6,39 @@ import {
   AppButton,
   AppCard,
   AppEmptyState,
+  AppErrorState,
+  AppSpinner,
   Icon,
 } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/features/auth";
-import { useAddTeamMember } from "../hooks";
+import {
+  useAddTeamMember,
+  useRemoveTeamMember,
+  useTeam,
+  useUpdateTeamMember,
+} from "../hooks";
 import { roleInfo } from "../roles";
 import type { TeamMember } from "../service";
 import { TeamInviteForm, type TeamInviteValues } from "./TeamInviteForm";
+import { TeamMemberForm, type TeamMemberFormValues } from "./TeamMemberForm";
 
 const fmtDate = (iso?: string) =>
   iso ? new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }) : "";
 
 export function TeamManager() {
-  const { role } = useAuth();
+  const { storeRole, claims } = useAuth();
+  const { data: members, isLoading, isError, error, refetch } = useTeam();
   const addMember = useAddTeamMember();
+  const updateMember = useUpdateTeamMember();
+  const removeMember = useRemoveTeamMember();
   const [formOpen, setFormOpen] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  // Sem GET /team — guardamos os adicionados nesta sessão.
-  const [added, setAdded] = useState<TeamMember[]>([]);
+  const [editing, setEditing] = useState<TeamMember | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
 
   // Guarda de papel: só Owner gerencia equipe.
-  if (role !== "Owner") {
+  if (storeRole !== "Owner") {
     return (
       <AppEmptyState
         icon="Lock"
@@ -40,12 +51,43 @@ export function TeamManager() {
   async function handleSave(values: TeamInviteValues) {
     setFormError(null);
     try {
-      const member = await addMember.mutateAsync({ email: values.email, role: values.role });
-      setAdded((prev) => [member, ...prev]);
+      await addMember.mutateAsync({ name: values.name, email: values.email, role: values.role });
       setFormOpen(false);
     } catch (err) {
       setFormError(err instanceof ApiError ? err.messages[0] : "Erro ao convidar membro.");
     }
+  }
+
+  async function handleEditSave(values: TeamMemberFormValues) {
+    if (!editing?.id) return;
+    setEditError(null);
+    try {
+      await updateMember.mutateAsync({ memberId: editing.id, body: { role: values.role } });
+      setEditing(null);
+    } catch (err) {
+      setEditError(err instanceof ApiError ? err.messages[0] : "Erro ao salvar membro.");
+    }
+  }
+
+  async function handleRemove() {
+    if (!editing?.id) return;
+    setEditError(null);
+    try {
+      await removeMember.mutateAsync(editing.id);
+      setEditing(null);
+    } catch (err) {
+      setEditError(err instanceof ApiError ? err.messages[0] : "Erro ao remover membro.");
+    }
+  }
+
+  const list = members ?? [];
+
+  /** Owner não é editável/removível; o próprio usuário logado também não. */
+  function canManage(m: TeamMember) {
+    if (m.role === "Owner") return false;
+    if (m.userId && claims?.sub && m.userId === claims.sub) return false;
+    if (m.userEmail && claims?.email && m.userEmail === claims.email) return false;
+    return true;
   }
 
   return (
@@ -60,17 +102,16 @@ export function TeamManager() {
         </AppButton>
       </div>
 
-      {/* Aviso: sem endpoint de listagem */}
-      <div className="mb-4 rounded-lg border border-dashed border-ink-300 bg-ink-50/40 px-4 py-3 text-xs text-ink-500 flex items-start gap-2">
-        <Icon name="Info" size={14} className="mt-0.5 shrink-0" />
-        A API ainda não expõe a listagem da equipe (<span className="font-mono">GET /team</span>).
-        Abaixo aparecem os membros adicionados nesta sessão.
-      </div>
-
-      {added.length === 0 ? (
+      {isLoading ? (
+        <div className="flex justify-center py-20">
+          <AppSpinner className="h-10 w-10" />
+        </div>
+      ) : isError ? (
+        <AppErrorState title="Erro ao carregar a equipe" error={error} onRetry={() => refetch()} />
+      ) : list.length === 0 ? (
         <AppEmptyState
           icon="Users"
-          title="Nenhum membro adicionado nesta sessão"
+          title="Nenhum membro na equipe"
           desc="Convide alguém para começar a montar sua equipe."
           action={
             <AppButton icon="UserPlus" onClick={() => setFormOpen(true)}>
@@ -81,9 +122,10 @@ export function TeamManager() {
       ) : (
         <AppCard className="overflow-hidden">
           <div className="divide-y divide-ink-100">
-            {added.map((m) => {
+            {list.map((m) => {
               const r = roleInfo(m.role);
               const display = m.userName || m.userEmail || "—";
+              const pending = m.status === "Pending";
               return (
                 <div
                   key={m.id ?? m.userEmail}
@@ -98,20 +140,53 @@ export function TeamManager() {
                       <div className="text-[12.5px] text-ink-500 truncate">{m.userEmail}</div>
                     )}
                   </div>
-                  {m.createdAt && (
-                    <div className="hidden sm:block text-xs text-ink-400">
-                      desde {fmtDate(m.createdAt)}
-                    </div>
+                  {pending ? (
+                    <AppBadge tone="warning" size="sm">
+                      Convite pendente
+                    </AppBadge>
+                  ) : (
+                    m.createdAt && (
+                      <div className="hidden sm:block text-xs text-ink-400">
+                        desde {fmtDate(m.createdAt)}
+                      </div>
+                    )
                   )}
                   <AppBadge tone={r.tone} size="sm">
                     {r.label}
                   </AppBadge>
+                  {canManage(m) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditError(null);
+                        setEditing(m);
+                      }}
+                      title="Editar membro"
+                      className="h-8 w-8 grid place-items-center rounded-lg text-ink-500 hover:bg-ink-100 hover:text-ink-900 transition-colors shrink-0"
+                    >
+                      <Icon name="Pencil" size={16} />
+                    </button>
+                  )}
                 </div>
               );
             })}
           </div>
         </AppCard>
       )}
+
+      <TeamMemberForm
+        open={!!editing}
+        member={editing}
+        saving={updateMember.isPending}
+        removing={removeMember.isPending}
+        error={editError}
+        onClose={() => {
+          setEditing(null);
+          setEditError(null);
+        }}
+        onSave={handleEditSave}
+        onRemove={handleRemove}
+      />
 
       <TeamInviteForm
         open={formOpen}

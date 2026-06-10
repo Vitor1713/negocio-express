@@ -2,8 +2,9 @@
 
 /**
  * Guarda os pedidos confirmados nesta sessão de navegação.
- * Não há GET /stores/{slug}/customer/orders na API; este contexto é a única
- * fonte de histórico disponível no front.
+ * O histórico real vem de GET /stores/{slug}/orders (useCustomerOrders),
+ * usado por OrdersTab e ReviewsTab. Este contexto é só write-only hoje:
+ * o checkout chama saveOrder, mas nenhuma tela ainda lê `orders` daqui.
  */
 import {
   createContext,

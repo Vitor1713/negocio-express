@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { AppButton, Icon } from "@/components/ui";
 import { ApiError } from "@/lib/api";
@@ -56,8 +57,18 @@ export function CartStep({ slug, coupon, onCouponApplied, onNext }: Props) {
         <div className="divide-y divide-ink-100">
           {items.map((item) => (
             <div key={item.variantId} className="flex gap-3 sm:gap-4 p-4 sm:px-6">
-              <div className="h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-xl bg-gradient-to-br from-brand-50 to-brand-100 grid place-items-center">
-                <Icon name="Package" size={28} className="text-brand-700" strokeWidth={1.6} />
+              <div className="relative h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-xl bg-gradient-to-br from-brand-50 to-brand-100 grid place-items-center overflow-hidden">
+                {item.imageUrl ? (
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.productName}
+                    fill
+                    sizes="80px"
+                    className="object-cover"
+                  />
+                ) : (
+                  <Icon name="Package" size={28} className="text-brand-700" strokeWidth={1.6} />
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">

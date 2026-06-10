@@ -1,21 +1,36 @@
 /**
- * Fluxo e rótulos de status de pedido. O contrato trata `status` como string
- * livre; aqui centralizamos os valores usados no design (ORDER_FLOW + cancelled).
+ * Status de pedido. O contrato trata `status` como string livre, mas o backend
+ * usa uma enum PascalCase, confirmada via `GET /orders/status-flow`:
+ *   Pending → Confirmed → Preparing → Ready → Shipped → Delivered  (+ Cancelled)
+ *
+ * O fluxo de transições VÁLIDAS vem da API (status-flow); aqui ficam só os
+ * rótulos/tons e um fallback estático para a timeline.
  */
 import type { AppBadgeProps } from "@/components/ui";
 
 type Tone = NonNullable<AppBadgeProps["tone"]>;
 
-export const ORDER_FLOW = ["pending", "paid", "preparing", "out_for_delivery", "delivered"] as const;
+/** Caminho "feliz" para a timeline (Cancelled fica fora). */
+export const ORDER_FLOW = [
+  "Pending",
+  "Confirmed",
+  "Preparing",
+  "Ready",
+  "Shipped",
+  "Delivered",
+] as const;
 
 export const ORDER_STATUS: Record<string, { label: string; tone: Tone }> = {
-  pending: { label: "Pendente", tone: "warning" },
-  paid: { label: "Pago", tone: "brand" },
-  preparing: { label: "Em preparo", tone: "brand" },
-  out_for_delivery: { label: "Em entrega", tone: "brand" },
-  delivered: { label: "Entregue", tone: "success" },
-  cancelled: { label: "Cancelado", tone: "danger" },
+  Pending: { label: "Pendente", tone: "warning" },
+  Confirmed: { label: "Confirmado", tone: "brand" },
+  Preparing: { label: "Em preparo", tone: "brand" },
+  Ready: { label: "Pronto", tone: "brand" },
+  Shipped: { label: "Enviado", tone: "brand" },
+  Delivered: { label: "Entregue", tone: "success" },
+  Cancelled: { label: "Cancelado", tone: "danger" },
 };
+
+export const CANCELLED = "Cancelled";
 
 export const DELIVERY_TYPE: Record<string, { label: string; icon: "Truck" | "Store" }> = {
   delivery: { label: "Entrega", icon: "Truck" },
@@ -26,11 +41,13 @@ export function statusInfo(status?: string) {
   return (status && ORDER_STATUS[status]) || { label: status ?? "—", tone: "neutral" as Tone };
 }
 
+/** Tolerante a maiúsculas/minúsculas (backend pode devolver Delivery/Pickup). */
 export function deliveryInfo(type?: string) {
-  return (type && DELIVERY_TYPE[type]) || { label: type ?? "—", icon: "Truck" as const };
+  const key = type?.toLowerCase();
+  return (key && DELIVERY_TYPE[key]) || { label: type ?? "—", icon: "Truck" as const };
 }
 
-/** Próximo status no fluxo, ou null se não há avanço possível. */
+/** Fallback estático do próximo status (use o status-flow da API quando possível). */
 export function nextStatus(status?: string): string | null {
   const idx = ORDER_FLOW.indexOf(status as (typeof ORDER_FLOW)[number]);
   if (idx < 0 || idx >= ORDER_FLOW.length - 1) return null;
@@ -38,5 +55,5 @@ export function nextStatus(status?: string): string | null {
 }
 
 export function isFinal(status?: string) {
-  return status === "delivered" || status === "cancelled";
+  return status === "Delivered" || status === "Cancelled";
 }

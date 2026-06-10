@@ -1,11 +1,15 @@
 import type { IconName } from "@/components/ui";
 
+/**
+ * Tipos de veículo (`vehicleType`, string livre no openapi). O backend usa uma
+ * enum PascalCase, validada por probe: **Motorcycle, Bicycle, Car, OnFoot**
+ * (entrada case-insensitive; resposta em PascalCase). NÃO existe "van"/"foot".
+ */
 export const VEHICLE_TYPE: Record<string, { label: string; icon: IconName }> = {
-  motorcycle: { label: "Moto", icon: "Bike" },
-  bicycle: { label: "Bicicleta", icon: "Bike" },
-  car: { label: "Carro", icon: "Car" },
-  van: { label: "Van", icon: "Truck" },
-  foot: { label: "A pé", icon: "Footprints" },
+  Motorcycle: { label: "Moto", icon: "Bike" },
+  Bicycle: { label: "Bicicleta", icon: "Bike" },
+  Car: { label: "Carro", icon: "Car" },
+  OnFoot: { label: "A pé", icon: "Footprints" },
 };
 
 export function vehicleInfo(type?: string) {

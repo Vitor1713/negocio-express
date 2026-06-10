@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { AppBadge, AppErrorState, AppTable, Icon, type Column } from "@/components/ui";
 import { useOrders, useUpdateOrderStatus } from "../hooks";
 import type { OrderShort } from "../service";
-import { deliveryInfo, statusInfo } from "../status";
+import { CANCELLED, deliveryInfo, statusInfo } from "../status";
 import { OrderDrawer } from "./OrderDrawer";
 
 const BRL = (n: number) =>
@@ -13,16 +13,18 @@ const BRL = (n: number) =>
 const fmtTime = (iso?: string) =>
   iso ? new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "—";
 
-const orderNo = (id?: string) => "#" + (id ?? "").replace(/\D/g, "").slice(0, 4).padStart(4, "0");
+const orderNo = (o: OrderShort) =>
+  o.number != null ? `#${o.number}` : "#" + (o.id ?? "").replace(/\D/g, "").slice(0, 4);
 
 const FILTERS = [
   { value: "all", label: "Todos" },
-  { value: "pending", label: "Pendentes" },
-  { value: "paid", label: "Pagos" },
-  { value: "preparing", label: "Em preparo" },
-  { value: "out_for_delivery", label: "Em entrega" },
-  { value: "delivered", label: "Entregues" },
-  { value: "cancelled", label: "Cancelados" },
+  { value: "Pending", label: "Pendentes" },
+  { value: "Confirmed", label: "Confirmados" },
+  { value: "Preparing", label: "Em preparo" },
+  { value: "Ready", label: "Prontos" },
+  { value: "Shipped", label: "Enviados" },
+  { value: "Delivered", label: "Entregues" },
+  { value: "Cancelled", label: "Cancelados" },
 ];
 
 export function OrdersList() {
@@ -60,15 +62,15 @@ export function OrdersList() {
   }
 
   async function cancel(order: OrderShort) {
-    await updateStatus.mutateAsync({ id: order.id!, status: "cancelled" });
-    setSelected((s) => (s && s.id === order.id ? { ...s, status: "cancelled" } : s));
+    await updateStatus.mutateAsync({ id: order.id!, status: CANCELLED });
+    setSelected((s) => (s && s.id === order.id ? { ...s, status: CANCELLED } : s));
   }
 
   const columns: Column<OrderShort>[] = [
     {
       key: "order",
       header: "Pedido",
-      render: (o) => <span className="font-mono font-medium text-ink-900">{orderNo(o.id)}</span>,
+      render: (o) => <span className="font-mono font-medium text-ink-900">{orderNo(o)}</span>,
     },
     {
       key: "customer",

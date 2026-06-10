@@ -3,6 +3,11 @@ import type { components } from "@/lib/api-types";
 
 type Schemas = components["schemas"];
 
+/**
+ * Plano exibido nos cards do onboarding. Os campos do design (description,
+ * annualPrice, maxUsers, features) já fazem parte do `ResponseShortPlan` no
+ * openapi.json — o card ainda degrada quando algum vier ausente.
+ */
 export type Plan = Schemas["ResponseShortPlan"];
 export type RegisterInput = Schemas["RequestRegister"];
 export type TokenResponse = Schemas["ResponseToken"];

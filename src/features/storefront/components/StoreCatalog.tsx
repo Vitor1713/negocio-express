@@ -6,18 +6,21 @@ import { AppErrorState, AppSpinner, Icon } from "@/components/ui";
 import { useAuth } from "@/features/auth";
 import { useCart } from "../cart-context";
 import { useStoreProducts } from "../hooks";
-import type { CatalogProduct, StoreCategory } from "../service";
+import { storeBRL } from "../format";
+import type { CatalogProduct, PublicStore, StoreCategory } from "../service";
 import { StoreProductCard } from "./StoreProductCard";
 import { StoreFooter } from "./StoreFooter";
 
 type Props = {
   slug: string;
   storeName: string;
+  /** Dados públicos da loja (status, entrega). Opcional: ausente em fallback. */
+  store?: PublicStore | null;
   initialProducts: CatalogProduct[];
   categories: StoreCategory[];
 };
 
-export function StoreCatalog({ slug, storeName, initialProducts, categories }: Props) {
+export function StoreCatalog({ slug, storeName, store, initialProducts, categories }: Props) {
   const { count } = useCart();
   const { isAuthenticated, role } = useAuth();
   const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
@@ -35,17 +38,49 @@ export function StoreCatalog({ slug, storeName, initialProducts, categories }: P
     ? list.filter((p) => p.name?.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q))
     : list;
 
+  // Resumo de entrega da loja (quando os dados públicos estão disponíveis).
+  const deliveryInfo = store
+    ? [
+        Number(store.deliveryFee ?? 0) > 0
+          ? `Entrega ${storeBRL(store.deliveryFee)}`
+          : "Entrega grátis",
+        Number(store.minOrderAmount ?? 0) > 0 ? `Mín. ${storeBRL(store.minOrderAmount)}` : null,
+        Number(store.estimatedDeliveryMinutes ?? 0) > 0
+          ? `~${store.estimatedDeliveryMinutes} min`
+          : null,
+      ].filter(Boolean)
+    : [];
+
   return (
     <div className="min-h-screen w-full bg-ink-50/60 flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-30 bg-white border-b border-ink-200">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-3.5 flex items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-2.5 shrink-0">
-            <span className="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white grid place-items-center shadow-soft">
-              <Icon name="Store" size={20} />
+            <span className="h-10 w-10 rounded-xl overflow-hidden bg-gradient-to-br from-brand-500 to-brand-700 text-white grid place-items-center shadow-soft">
+              {store?.logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={store.logoUrl} alt={storeName} className="h-full w-full object-cover" />
+              ) : (
+                <Icon name="Store" size={20} />
+              )}
             </span>
-            <div className="hidden sm:block font-display font-extrabold text-[15px] text-ink-900 leading-tight">
-              {storeName}
+            <div className="hidden sm:flex items-center gap-2">
+              <span className="font-display font-extrabold text-[15px] text-ink-900 leading-tight">
+                {storeName}
+              </span>
+              {store && (
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                    store.isOpen ? "bg-brand-100 text-brand-700" : "bg-ink-100 text-ink-500"
+                  }`}
+                >
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${store.isOpen ? "bg-brand-500" : "bg-ink-400"}`}
+                  />
+                  {store.isOpen ? "Aberta" : "Fechada"}
+                </span>
+              )}
             </div>
           </div>
 
@@ -64,12 +99,13 @@ export function StoreCatalog({ slug, storeName, initialProducts, categories }: P
             </div>
           </div>
 
-          {/* Ícone de conta (só para clientes autenticados) */}
-          {isAuthenticated && role !== "Owner" && role !== "Lojista" && (
+          {/* Ícone de conta: leva ao login quando visitante, à conta quando cliente.
+              Escondido para lojistas (não têm conta de cliente na vitrine). */}
+          {role !== "Owner" && role !== "Lojista" && (
             <Link
-              href={`/stores/${slug}/account`}
+              href={`/stores/${slug}/${isAuthenticated ? "account" : "login"}`}
               className="h-10 w-10 grid place-items-center rounded-lg border border-ink-200 text-ink-700 hover:bg-ink-50 transition-colors shrink-0"
-              title="Minha conta"
+              title={isAuthenticated ? "Minha conta" : "Entrar"}
             >
               <Icon name="User" size={18} />
             </Link>
@@ -135,6 +171,9 @@ export function StoreCatalog({ slug, storeName, initialProducts, categories }: P
             </h1>
             <p className="text-sm text-ink-500 mt-0.5">
               {filtered.length} {filtered.length === 1 ? "item" : "itens"}
+              {deliveryInfo.length > 0 && (
+                <span className="text-ink-400"> · {deliveryInfo.join(" · ")}</span>
+              )}
             </p>
           </div>
           {isFetching && <AppSpinner />}
@@ -159,7 +198,7 @@ export function StoreCatalog({ slug, storeName, initialProducts, categories }: P
         )}
       </main>
 
-      <StoreFooter storeName={storeName} />
+      <StoreFooter storeName={storeName} store={store} />
     </div>
   );
 }
