@@ -54,8 +54,8 @@ export default function NewProductPage() {
         });
       }
 
-      if (values.imageUrl) {
-        await addImage(productId, { url: values.imageUrl, displayOrder: 0, isCover: true });
+      for (const [i, img] of values.images.entries()) {
+        await addImage(productId, { url: img.url, displayOrder: i, isCover: i === 0 });
       }
 
       qc.invalidateQueries({ queryKey: PRODUCTS_KEY });

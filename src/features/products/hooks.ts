@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/features/auth/auth-context";
 import {
   addImage,
   addVariant,
@@ -11,6 +12,7 @@ import {
   listProducts,
   updateProduct,
   updateVariant,
+  uploadProductImage,
   type RequestProduct,
   type RequestProductImage,
   type RequestProductVariant,
@@ -100,5 +102,16 @@ export function useDeleteImage(productId: string) {
   return useMutation({
     mutationFn: (imageId: string) => deleteImage(imageId),
     onSuccess: () => qc.invalidateQueries({ queryKey: [...PRODUCTS_KEY, productId] }),
+  });
+}
+
+/** Upload de imagem ao Azure (via /api/uploads); usa o token do AuthProvider. */
+export function useUploadImage() {
+  const { token } = useAuth();
+  return useMutation({
+    mutationFn: (file: File) => {
+      if (!token) throw new Error("Sessão expirada. Faça login novamente.");
+      return uploadProductImage(file, token);
+    },
   });
 }

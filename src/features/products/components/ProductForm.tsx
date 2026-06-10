@@ -10,11 +10,11 @@ import {
   AppField,
   AppInput,
   AppBadge,
-  AppSpinner,
   Icon,
 } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import type { Category, Product } from "../service";
+import { ProductImageUploader } from "./ProductImageUploader";
 
 const variantSchema = z.object({
   id: z.string().optional(),
@@ -33,7 +33,16 @@ const schema = z.object({
   categoryId: z.string().nullable().optional(),
   isActive: z.boolean(),
   variants: z.array(variantSchema).min(1, "Adicione ao menos uma variação"),
-  imageUrl: z.string().url("URL inválida").optional().or(z.literal("")),
+  images: z
+    .array(
+      z.object({
+        id: z.string().optional(),
+        url: z.string(),
+        displayOrder: z.number(),
+        isCover: z.boolean(),
+      }),
+    )
+    .max(8),
 });
 
 export type ProductFormValues = z.infer<typeof schema>;
@@ -79,7 +88,12 @@ export function ProductForm({ product, categories, saving, onSave, onDelete, onC
       basePrice: Number(product?.basePrice ?? 0),
       categoryId: categories[0]?.id ?? null,
       isActive: product?.isActive ?? true,
-      imageUrl: product?.images?.[0]?.url ?? "",
+      images: (product?.images ?? []).map((img, i) => ({
+        id: img.id,
+        url: img.url ?? "",
+        displayOrder: typeof img.displayOrder === "number" ? img.displayOrder : i,
+        isCover: img.isCover ?? i === 0,
+      })),
       variants: product?.variants?.length
         ? product.variants.map((v) => ({
             id: v.id,
@@ -198,17 +212,11 @@ export function ProductForm({ product, categories, saving, onSave, onDelete, onC
             </div>
           </AppCard>
 
-          {/* Imagem de capa (URL) */}
-          <AppCard className="p-5 sm:p-6">
-            <h2 className="font-display font-bold text-ink-900 mb-4">Imagem de capa</h2>
-            <AppInput
-              label="URL da imagem"
-              placeholder="https://..."
-              error={errors.imageUrl?.message}
-              {...register("imageUrl")}
-            />
-            <p className="mt-2 text-xs text-ink-500">Cole a URL de uma imagem JPG/PNG.</p>
-          </AppCard>
+          {/* Imagens */}
+          <ProductImageUploader
+            value={watch("images")}
+            onChange={(next) => setValue("images", next, { shouldDirty: true })}
+          />
 
           {/* Variações */}
           <AppCard className="p-5 sm:p-6">

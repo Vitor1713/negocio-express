@@ -54,5 +54,35 @@ export async function deleteImage(imageId: string): Promise<void> {
   return api.delete<void>(`/products/images/${imageId}`);
 }
 
+/**
+ * Sobe um arquivo para o Azure Blob via Route Handler interno (`/api/uploads`)
+ * e devolve a URL pública. NÃO usa `lib/api.ts` (JSON-only, aponta ao .NET):
+ * é uma chamada multipart à rota do próprio Next. O token vai no Authorization
+ * (gate v1 da rota só confere presença do Bearer).
+ */
+export async function uploadProductImage(file: File, token: string): Promise<{ url: string }> {
+  const body = new FormData();
+  body.append("file", file);
+
+  const res = await fetch("/api/uploads", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body,
+  });
+
+  if (!res.ok) {
+    let message = "Falha ao enviar a imagem.";
+    try {
+      const data = (await res.json()) as { errorMessages?: string[] };
+      if (data?.errorMessages?.[0]) message = data.errorMessages[0];
+    } catch {
+      /* corpo vazio ou não-JSON */
+    }
+    throw new Error(message);
+  }
+
+  return (await res.json()) as { url: string };
+}
+
 // Reusa a fonte canônica da feature `categories` (evita duplicar GET /categories).
 export { listCategories as listDashboardCategories } from "@/features/categories/service";
