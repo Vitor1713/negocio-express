@@ -20,6 +20,7 @@ import { useAuth } from "@/features/auth";
 import { STORE_CATEGORIES } from "../categories";
 import { storeStatusInfo } from "../status";
 import { useStore, useUpdateStore } from "../hooks";
+import { StoreLogoUploader } from "./StoreLogoUploader";
 import type { Store } from "../service";
 
 const fmtDate = (iso?: string) =>
@@ -100,6 +101,7 @@ function SettingsForm({ store }: { store: Store }) {
   const update = useUpdateStore();
   const [saved, setSaved] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(store.logoUrl ?? null);
   const status = storeStatusInfo(store.status);
 
   const {
@@ -131,7 +133,7 @@ function SettingsForm({ store }: { store: Store }) {
         email: values.email,
         phone: values.phone,
         category: values.category,
-        logoUrl: store.logoUrl,
+        logoUrl,
         isOpen: store.isOpen,
         deliveryFee: store.deliveryFee,
         minOrderAmount: store.minOrderAmount,
@@ -143,6 +145,7 @@ function SettingsForm({ store }: { store: Store }) {
         phone: updated.phone ? formatPhone(updated.phone) : "",
         category: updated.category ?? "",
       });
+      setLogoUrl(updated.logoUrl ?? null);
       setSaved(true);
     } catch (err) {
       setSubmitError(
@@ -161,8 +164,13 @@ function SettingsForm({ store }: { store: Store }) {
       {/* Identidade */}
       <AppCard className="p-5 sm:p-6">
         <div className="flex items-center gap-3 pb-4 border-b border-ink-100">
-          <span className="h-12 w-12 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white grid place-items-center shadow-soft">
-            <Icon name="Store" size={22} />
+          <span className="h-12 w-12 rounded-xl overflow-hidden bg-gradient-to-br from-brand-500 to-brand-700 text-white grid place-items-center shadow-soft shrink-0">
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoUrl} alt="Logotipo da loja" className="h-full w-full object-cover" />
+            ) : (
+              <Icon name="Store" size={22} />
+            )}
           </span>
           <div className="flex-1 min-w-0">
             <div className="font-display font-bold text-ink-900 truncate">{store.name}</div>
@@ -176,6 +184,14 @@ function SettingsForm({ store }: { store: Store }) {
         </div>
 
         <div className="mt-5 space-y-4">
+          <StoreLogoUploader
+            value={logoUrl}
+            onChange={(url) => {
+              setLogoUrl(url);
+              setSaved(false);
+            }}
+          />
+
           <AppInput label="Nome da loja" required error={errors.name?.message} {...register("name")} />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -32,8 +32,13 @@ export function StoreFooter({
       <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-8 flex flex-col md:flex-row items-start justify-between gap-8">
         {/* Identidade + categoria */}
         <div className="flex items-center gap-3">
-          <span className="h-11 w-11 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white grid place-items-center shadow-soft">
-            <Icon name="Store" size={20} />
+          <span className="h-11 w-11 rounded-xl overflow-hidden bg-gradient-to-br from-brand-500 to-brand-700 text-white grid place-items-center shadow-soft">
+            {store?.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={store.logoUrl} alt={storeName} className="h-full w-full object-cover" />
+            ) : (
+              <Icon name="Store" size={20} />
+            )}
           </span>
           <div>
             <div className="font-display font-extrabold text-ink-900">{storeName}</div>

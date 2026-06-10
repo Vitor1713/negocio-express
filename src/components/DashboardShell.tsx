@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon, type IconName, Logo } from "@/components/ui";
 import { useAuth } from "@/features/auth";
+import { useStore } from "@/features/store";
 import { cn } from "@/lib/cn";
 
 type NavItem = {
@@ -28,6 +29,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const { claims, logout } = useAuth();
+  const { data: store } = useStore();
 
   const isActive = (href: string) =>
     href === "/dashboard" ? pathname === href : pathname.startsWith(href);
@@ -43,6 +45,27 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           <Icon name="X" size={18} />
         </button>
       </div>
+
+      {store?.name && (
+        <div className="mx-3 mb-3 px-3 py-3 rounded-xl bg-white border border-ink-200 shadow-soft">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="h-9 w-9 rounded-lg overflow-hidden bg-gradient-to-br from-brand-500 to-brand-700 text-white grid place-items-center shrink-0">
+              {store.logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={store.logoUrl} alt={store.name} className="h-full w-full object-cover" />
+              ) : (
+                <Icon name="Store" size={16} />
+              )}
+            </div>
+            <div className="min-w-0">
+              <div className="text-[11px] text-ink-500 leading-tight">Loja</div>
+              <div className="text-[13px] font-semibold text-ink-900 truncate leading-tight mt-0.5">
+                {store.name}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {claims?.email && (
         <div className="mx-3 mb-4 px-3 py-3 rounded-xl bg-white border border-ink-200 shadow-soft">
