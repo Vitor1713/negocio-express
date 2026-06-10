@@ -2922,121 +2922,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/team/invite/{token}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    token: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ResponseInviteInfo"];
-                        "application/json": components["schemas"]["ResponseInviteInfo"];
-                        "text/json": components["schemas"]["ResponseInviteInfo"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ResponseError"];
-                        "application/json": components["schemas"]["ResponseError"];
-                        "text/json": components["schemas"]["ResponseError"];
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/team/accept": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["RequestAcceptInvite"];
-                    "text/json": components["schemas"]["RequestAcceptInvite"];
-                    "application/*+json": components["schemas"]["RequestAcceptInvite"];
-                };
-            };
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ResponseToken"];
-                        "application/json": components["schemas"]["ResponseToken"];
-                        "text/json": components["schemas"]["ResponseToken"];
-                    };
-                };
-                /** @description Bad Request */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ResponseError"];
-                        "application/json": components["schemas"]["ResponseError"];
-                        "text/json": components["schemas"]["ResponseError"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "text/plain": components["schemas"]["ResponseError"];
-                        "application/json": components["schemas"]["ResponseError"];
-                        "text/json": components["schemas"]["ResponseError"];
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/team/{memberId}": {
         parameters: {
             query?: never;
@@ -3156,10 +3041,129 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/team/invite/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ResponseInviteInfo"];
+                        "application/json": components["schemas"]["ResponseInviteInfo"];
+                        "text/json": components["schemas"]["ResponseInviteInfo"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ResponseError"];
+                        "application/json": components["schemas"]["ResponseError"];
+                        "text/json": components["schemas"]["ResponseError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/team/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RequestAcceptInvite"];
+                    "text/json": components["schemas"]["RequestAcceptInvite"];
+                    "application/*+json": components["schemas"]["RequestAcceptInvite"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ResponseToken"];
+                        "application/json": components["schemas"]["ResponseToken"];
+                        "text/json": components["schemas"]["ResponseToken"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ResponseError"];
+                        "application/json": components["schemas"]["ResponseError"];
+                        "text/json": components["schemas"]["ResponseError"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ResponseError"];
+                        "application/json": components["schemas"]["ResponseError"];
+                        "text/json": components["schemas"]["ResponseError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        RequestAcceptInvite: {
+            token?: string;
+            password?: string;
+        };
         RequestAddress: {
             street?: string;
             number?: string;
@@ -3173,10 +3177,6 @@ export interface components {
             name?: string;
             email?: string;
             role?: string;
-        };
-        RequestAcceptInvite: {
-            token?: string;
-            password?: string;
         };
         RequestAssignDeliverer: {
             /** Format: uuid */
@@ -3396,6 +3396,7 @@ export interface components {
             comment?: null | string;
             /** Format: date-time */
             createdAt?: string;
+            customerName?: null | string;
         };
         ResponseCatalogVariant: {
             /** Format: uuid */
@@ -3487,6 +3488,11 @@ export interface components {
         ResponseInsufficientStock: {
             errorMessages?: string[];
             unavailableItems?: components["schemas"]["ResponseUnavailableItem"][];
+        };
+        ResponseInviteInfo: {
+            email?: string;
+            storeName?: string;
+            role?: string;
         };
         ResponseMessage: {
             message?: string;
@@ -3704,6 +3710,7 @@ export interface components {
             comment?: null | string;
             /** Format: date-time */
             createdAt?: string;
+            customerName?: null | string;
         };
         ResponseShortPlan: {
             /** Format: uuid */
@@ -3755,11 +3762,6 @@ export interface components {
             status?: string;
             /** Format: date-time */
             createdAt?: string;
-        };
-        ResponseInviteInfo: {
-            email?: string;
-            storeName?: string;
-            role?: string;
         };
         ResponseTeamMembers: {
             members?: components["schemas"]["ResponseTeamMember"][];

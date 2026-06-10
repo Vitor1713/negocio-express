@@ -29,9 +29,8 @@ export async function createAddress(slug: string, body: RequestAddress): Promise
 }
 
 /**
- * Cria uma avaliação. O contrato exige productId (UUID), mas a API só
- * expõe productVariantId nos itens do pedido — enviamos o variantId como
- * melhor esforço; a API pode rejeitar se não corresponder a um productId válido.
+ * Cria uma avaliação. Exige orderId + productId (UUID). O productId vem do
+ * item do pedido (ResponseOrderItem.productId), retornado por listCustomerOrders.
  */
 export async function createReview(slug: string, body: RequestCreateReview): Promise<Review> {
   return api.post<Review>(`/stores/${enc(slug)}/reviews`, body);

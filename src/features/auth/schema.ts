@@ -14,6 +14,17 @@ export const loginSchema = z.object({
 
 export type LoginValues = z.infer<typeof loginSchema>;
 
+/**
+ * Login do painel (lojista): multi-tenant. O backend exige o `storeSlug` para
+ * localizar o lojista na loja certa — sem ele responde 401 (ver lojista.md).
+ * A vitrine (cliente) não usa este schema: lá a loja vem do slug da rota.
+ */
+export const lojistaLoginSchema = loginSchema.extend({
+  storeSlug: z.string().min(1, "Informe o identificador da loja."),
+});
+
+export type LojistaLoginValues = z.infer<typeof lojistaLoginSchema>;
+
 /** Cadastro do cliente na vitrine (RequestRegisterCustomer + confirmação de senha). */
 export const customerRegisterSchema = z
   .object({

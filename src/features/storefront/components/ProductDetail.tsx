@@ -244,7 +244,7 @@ export function ProductDetail({ slug, storeName, store, product }: Props) {
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[13.5px] font-medium text-ink-900">Cliente verificado</span>
+                      <span className="text-[13.5px] font-medium text-ink-900">{r.customerName?.trim() || "Cliente verificado"}</span>
                       <span className="text-[11.5px] text-ink-400">{fmtReviewDate(r.createdAt)}</span>
                     </div>
                     <div className="mt-0.5">

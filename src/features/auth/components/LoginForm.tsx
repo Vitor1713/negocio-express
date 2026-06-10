@@ -11,12 +11,15 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { AppButton, AppInput, Icon } from "@/components/ui";
-import { loginSchema, type LoginValues } from "../schema";
+import { loginSchema, lojistaLoginSchema, type LojistaLoginValues } from "../schema";
 
-type FieldErrors = Partial<Record<keyof LoginValues, string>>;
+/** Valores emitidos: o painel inclui storeSlug; a vitrine, não. */
+export type LoginSubmitValues = LojistaLoginValues;
+
+type FieldErrors = Partial<Record<keyof LojistaLoginValues, string>>;
 
 type LoginFormProps = {
-  onSubmit: (values: LoginValues) => void;
+  onSubmit: (values: LoginSubmitValues) => void;
   loading?: boolean;
   serverError?: string | null;
   /** Mensagem de sucesso/aviso (ex.: confirmação após redefinir a senha). */
@@ -27,6 +30,11 @@ type LoginFormProps = {
   registerHref?: string;
   /** Destino do link "Esqueci minha senha". */
   forgotHref?: string;
+  /**
+   * Exibe o campo "Loja" (storeSlug), obrigatório no login do painel (lojista).
+   * Na vitrine fica `false`: a loja já vem do slug da rota.
+   */
+  storeField?: boolean;
 };
 
 export function LoginForm({
@@ -37,18 +45,22 @@ export function LoginForm({
   submitLabel = "Entrar",
   registerHref = "/register",
   forgotHref = "/forgot-password",
+  storeField = false,
 }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [storeSlug, setStoreSlug] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    const result = loginSchema.safeParse({ email, password });
+    const result = storeField
+      ? lojistaLoginSchema.safeParse({ email, password, storeSlug })
+      : loginSchema.safeParse({ email, password });
     if (!result.success) {
       const next: FieldErrors = {};
       for (const issue of result.error.issues) {
-        const key = issue.path[0] as keyof LoginValues;
+        const key = issue.path[0] as keyof FieldErrors;
         next[key] ??= issue.message;
       }
       setErrors(next);
@@ -102,6 +114,20 @@ export function LoginForm({
         error={errors.password}
         disabled={loading}
       />
+
+      {storeField && (
+        <AppInput
+          label="Loja"
+          icon="Store"
+          placeholder="identificador-da-loja"
+          autoComplete="organization"
+          hint="O identificador (slug) da sua loja, ex.: minha-loja."
+          value={storeSlug}
+          onChange={(e) => setStoreSlug(e.target.value)}
+          error={errors.storeSlug}
+          disabled={loading}
+        />
+      )}
 
       <div className="flex items-center justify-between pt-1">
         <label className="flex cursor-pointer items-center gap-2 text-sm text-ink-600">

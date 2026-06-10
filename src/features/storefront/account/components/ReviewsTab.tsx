@@ -4,16 +4,22 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { AppButton, AppCard, AppEmptyState, AppField, AppInput, Icon } from "@/components/ui";
+import {
+  AppButton,
+  AppCard,
+  AppEmptyState,
+  AppErrorState,
+  AppField,
+  AppSpinner,
+  Icon,
+} from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { ApiError } from "@/lib/api";
-import { useOrders, type SessionOrderItem } from "../../orders-context";
-import { StarRating } from "../../components/StarRating";
-import { useCreateReview } from "../hooks";
+import { useCreateReview, useCustomerOrders } from "../hooks";
 
 const schema = z.object({
   orderId: z.string().uuid("ID do pedido inválido"),
-  variantId: z.string().min(1, "Selecione o produto"),
+  productId: z.string().uuid("Selecione o produto"),
   rating: z.coerce.number().int().min(1, "Avalie de 1 a 5").max(5),
   comment: z.string().optional(),
 });
@@ -25,7 +31,7 @@ type Props = { slug: string };
 type ReviewSuccess = { productName: string };
 
 export function ReviewsTab({ slug }: Props) {
-  const { orders } = useOrders();
+  const { data: orders, isLoading, isError, error, refetch } = useCustomerOrders(slug);
   const createReview = useCreateReview(slug);
   const [success, setSuccess] = useState<ReviewSuccess | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -40,28 +46,28 @@ export function ReviewsTab({ slug }: Props) {
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { rating: 0, orderId: "", variantId: "" },
+    defaultValues: { rating: 0, orderId: "", productId: "" },
   });
 
   const selectedOrderId = watch("orderId");
-  const selectedVariantId = watch("variantId");
+  const selectedProductId = watch("productId");
   const rating = watch("rating");
 
-  // Coleta todos os itens elegíveis agrupados por pedido
-  const eligibleOrders = orders.filter((o) => o.items.length > 0);
+  // Pedidos com itens, vindos da API (inclui pedidos antigos)
+  const eligibleOrders = (orders ?? []).filter((o) => (o.items?.length ?? 0) > 0);
 
   // Itens do pedido selecionado
-  const selectedOrder = orders.find((o) => o.id === selectedOrderId);
-  const eligibleItems: SessionOrderItem[] = selectedOrder?.items ?? [];
+  const selectedOrder = eligibleOrders.find((o) => o.id === selectedOrderId);
+  const eligibleItems = selectedOrder?.items ?? [];
 
-  const selectedItem = eligibleItems.find((i) => i.variantId === selectedVariantId);
+  const selectedItem = eligibleItems.find((i) => i.productId === selectedProductId);
 
   async function handleSubmitReview(values: FormValues) {
     setSubmitError(null);
     try {
       await createReview.mutateAsync({
         orderId: values.orderId,
-        productId: values.variantId, // melhor esforço — API exige productId
+        productId: values.productId,
         rating: values.rating,
         comment: values.comment || null,
       });
@@ -77,7 +83,7 @@ export function ReviewsTab({ slug }: Props) {
       <div className="mb-5">
         <h2 className="font-display font-bold text-lg text-ink-900">Avaliar produto</h2>
         <p className="text-sm text-ink-500 mt-0.5">
-          Apenas produtos de pedidos confirmados nesta sessão podem ser avaliados.
+          Avalie os produtos dos seus pedidos.
         </p>
       </div>
 
@@ -91,11 +97,17 @@ export function ReviewsTab({ slug }: Props) {
         </div>
       )}
 
-      {eligibleOrders.length === 0 ? (
+      {isLoading ? (
+        <div className="flex justify-center py-16">
+          <AppSpinner className="h-9 w-9" />
+        </div>
+      ) : isError ? (
+        <AppErrorState title="Erro ao carregar seus pedidos" error={error} onRetry={() => refetch()} />
+      ) : eligibleOrders.length === 0 ? (
         <AppEmptyState
           icon="Star"
           title="Nenhum pedido para avaliar"
-          desc="Conclua um pedido nesta sessão para poder avaliar os produtos."
+          desc="Quando você comprar nesta loja, poderá avaliar os produtos por aqui."
         />
       ) : (
         <AppCard className="p-5 sm:p-6">
@@ -111,14 +123,18 @@ export function ReviewsTab({ slug }: Props) {
             <AppField label="Pedido" required error={errors.orderId?.message}>
               <select
                 className="w-full bg-white border border-ink-200 rounded-lg px-3 py-2.5 text-sm text-ink-900 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-100"
-                {...register("orderId", { onChange: () => setValue("variantId", "") })}
+                {...register("orderId", { onChange: () => setValue("productId", "") })}
               >
                 <option value="">Selecione um pedido</option>
                 {eligibleOrders.map((o) => {
-                  const shortId = o.id.replace(/-/g, "").slice(0, 8).toUpperCase();
+                  const label =
+                    o.number != null && o.number !== ""
+                      ? `#${o.number}`
+                      : "#" + (o.id ?? "").replace(/-/g, "").slice(0, 8).toUpperCase();
+                  const count = o.items?.length ?? 0;
                   return (
                     <option key={o.id} value={o.id}>
-                      #{shortId} · {o.items.length} {o.items.length === 1 ? "item" : "itens"}
+                      {label} · {count} {count === 1 ? "item" : "itens"}
                     </option>
                   );
                 })}
@@ -127,15 +143,17 @@ export function ReviewsTab({ slug }: Props) {
 
             {/* Seleção do produto */}
             {selectedOrderId && (
-              <AppField label="Produto" required error={errors.variantId?.message}>
+              <AppField label="Produto" required error={errors.productId?.message}>
                 <div className="space-y-2">
                   {eligibleItems.map((item) => {
-                    const active = selectedVariantId === item.variantId;
+                    const active = selectedProductId === item.productId;
                     return (
                       <button
-                        key={item.variantId}
+                        key={item.id ?? item.productId}
                         type="button"
-                        onClick={() => setValue("variantId", item.variantId, { shouldValidate: true })}
+                        onClick={() =>
+                          setValue("productId", item.productId ?? "", { shouldValidate: true })
+                        }
                         className={cn(
                           "w-full flex items-center gap-3 p-3 rounded-lg border text-left text-sm transition-all",
                           active
@@ -144,7 +162,7 @@ export function ReviewsTab({ slug }: Props) {
                         )}
                       >
                         <span className="h-8 w-8 rounded-md bg-brand-100 text-brand-700 grid place-items-center text-[11px] font-bold shrink-0">
-                          {item.qty}×
+                          {item.quantity}×
                         </span>
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-ink-900 truncate">{item.productName}</div>
@@ -161,7 +179,7 @@ export function ReviewsTab({ slug }: Props) {
             )}
 
             {/* Estrelas */}
-            {selectedVariantId && (
+            {selectedProductId && (
               <>
                 <AppField label="Avaliação" required error={errors.rating?.message}>
                   <div className="flex items-center gap-1">
