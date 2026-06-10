@@ -3663,6 +3663,7 @@ export interface components {
             /** Format: double */
             basePrice?: number | string;
             isActive?: boolean;
+            coverImageUrl?: null | string;
         };
         ResponseProductVariant: {
             /** Format: uuid */

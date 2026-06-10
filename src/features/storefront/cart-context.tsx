@@ -17,6 +17,7 @@ export type CartItem = {
   variantName: string;
   finalPrice: number;
   stock: number;
+  imageUrl?: string;
 };
 
 type State = { items: CartItem[] };

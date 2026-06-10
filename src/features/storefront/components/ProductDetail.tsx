@@ -49,6 +49,7 @@ export function ProductDetail({ slug, storeName, store, product }: Props) {
         variantName: selected.name ?? "",
         finalPrice: price,
         stock,
+        imageUrl: cover,
       },
       qty,
     );

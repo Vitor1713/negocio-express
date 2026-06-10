@@ -6152,6 +6152,12 @@
           },
           "isActive": {
             "type": "boolean"
+          },
+          "coverImageUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { AppBadge, AppCard, Icon } from "@/components/ui";
 import type { ProductShort } from "../service";
 
@@ -21,8 +22,18 @@ export function ProductCard({ product, onClick }: Props) {
       onClick={onClick}
     >
       <div className="flex gap-3 p-4">
-        <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-brand-50 to-brand-100 grid place-items-center shrink-0">
-          <Icon name="Package" size={26} className="text-brand-700" strokeWidth={1.6} />
+        <div className="relative h-16 w-16 rounded-xl bg-gradient-to-br from-brand-50 to-brand-100 grid place-items-center shrink-0 overflow-hidden">
+          {product.coverImageUrl ? (
+            <Image
+              src={product.coverImageUrl}
+              alt={product.name ?? ""}
+              fill
+              sizes="64px"
+              className="object-cover"
+            />
+          ) : (
+            <Icon name="Package" size={26} className="text-brand-700" strokeWidth={1.6} />
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <h4 className="font-display font-semibold text-[15px] text-ink-900 leading-snug line-clamp-1">
