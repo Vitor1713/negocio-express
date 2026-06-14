@@ -4,6 +4,58 @@
  */
 
 export interface paths {
+    "/webhooks/asaas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: {
+                    "asaas-access-token"?: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RequestAsaasWebhook"];
+                    "text/json": components["schemas"]["RequestAsaasWebhook"];
+                    "application/*+json": components["schemas"]["RequestAsaasWebhook"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/register": {
         parameters: {
             query?: never;
@@ -2825,6 +2877,186 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/store/payment-account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ResponseStorePaymentAccount"];
+                        "application/json": components["schemas"]["ResponseStorePaymentAccount"];
+                        "text/json": components["schemas"]["ResponseStorePaymentAccount"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ResponseError"];
+                        "application/json": components["schemas"]["ResponseError"];
+                        "text/json": components["schemas"]["ResponseError"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RequestCreateStorePaymentAccount"];
+                    "text/json": components["schemas"]["RequestCreateStorePaymentAccount"];
+                    "application/*+json": components["schemas"]["RequestCreateStorePaymentAccount"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ResponseStorePaymentAccount"];
+                        "application/json": components["schemas"]["ResponseStorePaymentAccount"];
+                        "text/json": components["schemas"]["ResponseStorePaymentAccount"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ResponseError"];
+                        "application/json": components["schemas"]["ResponseError"];
+                        "text/json": components["schemas"]["ResponseError"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ResponseError"];
+                        "application/json": components["schemas"]["ResponseError"];
+                        "text/json": components["schemas"]["ResponseError"];
+                    };
+                };
+                /** @description Bad Gateway */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ResponseError"];
+                        "application/json": components["schemas"]["ResponseError"];
+                        "text/json": components["schemas"]["ResponseError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/store/payments/{paymentId}/refund": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    paymentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ResponsePayment"];
+                        "application/json": components["schemas"]["ResponsePayment"];
+                        "text/json": components["schemas"]["ResponsePayment"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ResponseError"];
+                        "application/json": components["schemas"]["ResponseError"];
+                        "text/json": components["schemas"]["ResponseError"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ResponseError"];
+                        "application/json": components["schemas"]["ResponseError"];
+                        "text/json": components["schemas"]["ResponseError"];
+                    };
+                };
+                /** @description Bad Gateway */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ResponseError"];
+                        "application/json": components["schemas"]["ResponseError"];
+                        "text/json": components["schemas"]["ResponseError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/team": {
         parameters: {
             query?: never;
@@ -3160,6 +3392,14 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ProblemDetails: {
+            type?: null | string;
+            title?: null | string;
+            /** Format: int32 */
+            status?: null | number | string;
+            detail?: null | string;
+            instance?: null | string;
+        };
         RequestAcceptInvite: {
             token?: string;
             password?: string;
@@ -3177,6 +3417,15 @@ export interface components {
             name?: string;
             email?: string;
             role?: string;
+        };
+        RequestAsaasWebhook: {
+            id?: null | string;
+            event?: string;
+            payment?: null | components["schemas"]["RequestAsaasWebhookPayment"];
+        };
+        RequestAsaasWebhookPayment: {
+            id?: string;
+            status?: string;
         };
         RequestAssignDeliverer: {
             /** Format: uuid */
@@ -3225,6 +3474,9 @@ export interface components {
             rating?: number | string;
             comment?: null | string;
         };
+        RequestCreateStorePaymentAccount: {
+            mobilePhone?: null | string;
+        };
         RequestForgotPassword: {
             email?: string;
         };
@@ -3245,6 +3497,10 @@ export interface components {
         };
         RequestPayment: {
             method?: string;
+            customerCpfCnpj?: string;
+            creditCardToken?: null | string;
+            /** Format: int32 */
+            installments?: number | string;
         };
         RequestPlan: {
             name?: string;
@@ -3630,10 +3886,15 @@ export interface components {
             method?: string;
             /** Format: double */
             amount?: number | string;
+            /** Format: int32 */
+            installments?: number | string;
             externalTransactionId?: null | string;
             /** Format: date-time */
             processedAt?: null | string;
             orderStatus?: string;
+            pixCopyPaste?: null | string;
+            pixQrCodeBase64?: null | string;
+            invoiceUrl?: null | string;
         };
         ResponsePlans: {
             plans?: components["schemas"]["ResponseShortPlan"][];
@@ -3748,6 +4009,15 @@ export interface components {
             minOrderAmount?: number | string;
             /** Format: int32 */
             estimatedDeliveryMinutes?: number | string;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        ResponseStorePaymentAccount: {
+            /** Format: uuid */
+            id?: string;
+            walletId?: string;
+            status?: string;
+            canReceivePayments?: boolean;
             /** Format: date-time */
             createdAt?: string;
         };

@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { AppBadge, AppButton, AppDrawer, AppSpinner, Icon } from "@/components/ui";
+import { ApiError } from "@/lib/api";
+import { useRefundPayment } from "@/features/store";
 import { useOrder, useStatusFlow } from "../hooks";
 import type { OrderShort } from "../service";
 import { CANCELLED, ORDER_FLOW, deliveryInfo, isFinal, statusInfo } from "../status";
@@ -27,6 +30,32 @@ export function OrderDrawer({ order, onClose, onAdvance, onCancel, updating }: P
   const detailQ = useOrder(order?.id ?? null);
   const flowQ = useStatusFlow();
   const detail = detailQ.data;
+
+  const refund = useRefundPayment();
+  const [confirmingRefund, setConfirmingRefund] = useState(false);
+  const [refundError, setRefundError] = useState<string | null>(null);
+
+  // O estorno precisa do id do pagamento. O contrato ainda NÃO expõe esse id no
+  // detalhe do pedido (ResponseOrderDetail) nem há GET de pagamentos — então a
+  // ação fica disponível só quando o backend passar a trazer `payment.id`.
+  const paymentId = (detail as { payment?: { id?: string } } | undefined)?.payment?.id;
+
+  async function handleRefund() {
+    if (!paymentId) return;
+    setRefundError(null);
+    try {
+      await refund.mutateAsync(paymentId);
+      setConfirmingRefund(false);
+    } catch (err) {
+      setRefundError(
+        err instanceof ApiError
+          ? err.status === 502
+            ? "Falha de comunicação com o provedor. Tente novamente."
+            : err.messages[0]
+          : "Não foi possível estornar. Tente novamente.",
+      );
+    }
+  }
 
   // Status "ao vivo" (detalhe) com fallback no short.
   const status = detail?.status ?? order?.status;
@@ -198,6 +227,45 @@ export function OrderDrawer({ order, onClose, onAdvance, onCancel, updating }: P
                   </span>
                 </div>
               </div>
+
+              {/* Estorno (Manager) — visível só quando o pagamento estiver disponível. */}
+              {paymentId && (
+                <div className="rounded-lg border border-red-200 bg-red-50/50 px-3.5 py-3">
+                  <div className="flex items-center gap-2 text-sm font-medium text-ink-900">
+                    <Icon name="RotateCcw" size={15} className="text-red-600" /> Estornar pagamento
+                  </div>
+                  <p className="mt-1 text-[12.5px] text-ink-500">
+                    Devolve o valor ao cliente. Esta ação não pode ser desfeita.
+                  </p>
+                  {refundError && (
+                    <div className="mt-2.5 text-[12.5px] text-red-700 flex items-center gap-1.5">
+                      <Icon name="CircleAlert" size={14} className="shrink-0" />
+                      {refundError}
+                    </div>
+                  )}
+                  <div className="mt-3">
+                    {confirmingRefund ? (
+                      <div className="flex gap-2">
+                        <AppButton
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setConfirmingRefund(false)}
+                          disabled={refund.isPending}
+                        >
+                          Cancelar
+                        </AppButton>
+                        <AppButton variant="danger" size="sm" loading={refund.isPending} onClick={handleRefund}>
+                          Confirmar estorno
+                        </AppButton>
+                      </div>
+                    ) : (
+                      <AppButton variant="outline" size="sm" icon="RotateCcw" onClick={() => setConfirmingRefund(true)}>
+                        Estornar
+                      </AppButton>
+                    )}
+                  </div>
+                </div>
+              )}
             </>
           ) : null}
         </div>

@@ -3,28 +3,28 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { AppButton, Icon } from "@/components/ui";
-import { ApiError } from "@/lib/api";
 import { useCart } from "../../cart-context";
 import { useOrders } from "../../orders-context";
 import { StepIndicator } from "../../../onboarding/components/StepIndicator";
 import { CartStep } from "./CartStep";
 import { DeliveryStep } from "./DeliveryStep";
 import { PaymentStep } from "./PaymentStep";
+import { PixPayment } from "./PixPayment";
 import { OrderConfirmed } from "./OrderConfirmed";
 import { OrderSummary, calcTotals } from "./OrderSummary";
 import { useCreateOrder, useCreatePayment, usePreviewOrder } from "../hooks";
-import type { ValidatedCoupon, OrderResponse, PaymentResponse } from "../service";
+import { checkoutErrorMessage } from "../service";
+import type { ValidatedCoupon, OrderResponse, PaymentResponse, PaymentInput } from "../service";
 
 const STEPS = ["Carrinho", "Entrega", "Pagamento"];
 const DELIVERY_FEE = 6.9;
 
-type Step = "cart" | "delivery" | "payment" | "done";
+type Step = "cart" | "delivery" | "payment" | "pix" | "done";
 
 type DoneData = {
   order: OrderResponse;
   payment: PaymentResponse;
   deliveryType: string;
-  method: string;
 };
 
 type Props = { slug: string };
@@ -36,14 +36,13 @@ export function CheckoutPage({ slug }: Props) {
   const [coupon, setCoupon] = useState<ValidatedCoupon | null>(null);
   const [deliveryType, setDeliveryType] = useState<"delivery" | "pickup">("delivery");
   const [addressId, setAddressId] = useState<string | null>(null);
-  const [method, setMethod] = useState("pix");
   const [doneData, setDoneData] = useState<DoneData | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const createOrder = useCreateOrder(slug);
   const createPayment = useCreatePayment(slug);
 
-  const stepNum = { cart: 1, delivery: 2, payment: 3, done: 3 }[step];
+  const stepNum = { cart: 1, delivery: 2, payment: 3, pix: 3, done: 3 }[step];
   const showDelivery = step !== "cart";
 
   // Body do preview (mesmo shape do pedido). Memo evita refetch a cada render.
@@ -65,7 +64,7 @@ export function CheckoutPage({ slug }: Props) {
 
   const submitting = createOrder.isPending || createPayment.isPending;
 
-  async function handleConfirm() {
+  async function handleConfirm(input: PaymentInput) {
     setSubmitError(null);
     try {
       const order = await createOrder.mutateAsync({
@@ -74,22 +73,22 @@ export function CheckoutPage({ slug }: Props) {
         items: items.map((i) => ({ productVariantId: i.variantId, quantity: i.qty })),
       });
 
-      const payment = await createPayment.mutateAsync({ orderId: order.id!, method });
+      const payment = await createPayment.mutateAsync({ orderId: order.id!, input });
 
-      if (payment.status === "failed") {
+      if (payment.isFinal && !payment.isApproved) {
         setSubmitError("Pagamento recusado. Tente novamente ou use outra forma de pagamento.");
         return;
       }
 
-      setDoneData({ order, payment, deliveryType, method });
+      setDoneData({ order, payment, deliveryType });
 
       // Persiste o pedido na sessão para a área do cliente
       saveOrder({
         id: order.id!,
         total: Number(order.total ?? 0),
         deliveryType,
-        paymentStatus: payment.status ?? "pending",
-        paymentMethod: method,
+        paymentStatus: payment.status ?? "Created",
+        paymentMethod: input.method,
         createdAt: order.createdAt ?? new Date().toISOString(),
         items: (order.items ?? []).map((item) => ({
           variantId: item.productVariantId ?? "",
@@ -101,10 +100,11 @@ export function CheckoutPage({ slug }: Props) {
       });
 
       clear();
-      setStep("done");
+      // Cartão: aprovado na hora → sucesso. PIX: aguarda confirmação por webhook → tela com QR + polling.
+      setStep(input.method === "Pix" && !payment.isApproved ? "pix" : "done");
       window.scrollTo({ top: 0, behavior: "instant" });
     } catch (err) {
-      setSubmitError(err instanceof ApiError ? err.messages[0] : "Erro ao finalizar o pedido. Tente novamente.");
+      setSubmitError(checkoutErrorMessage(err));
     }
   }
 
@@ -150,6 +150,21 @@ export function CheckoutPage({ slug }: Props) {
     );
   }
 
+  // PIX: aguardando pagamento (QR + polling do status do pedido)
+  if (step === "pix" && doneData) {
+    return (
+      <div className="min-h-screen w-full bg-ink-50/60">
+        {header}
+        <PixPayment
+          slug={slug}
+          order={doneData.order}
+          payment={doneData.payment}
+          deliveryType={doneData.deliveryType}
+        />
+      </div>
+    );
+  }
+
   // Pedido confirmado
   if (step === "done" && doneData) {
     return (
@@ -157,11 +172,9 @@ export function CheckoutPage({ slug }: Props) {
         {header}
         <OrderConfirmed
           slug={slug}
-          orderId={doneData.order.id!}
-          total={Number(doneData.order.total ?? total)}
+          order={doneData.order}
+          payment={doneData.payment}
           deliveryType={doneData.deliveryType}
-          paymentStatus={doneData.payment.status ?? "pending"}
-          paymentMethod={doneData.method}
         />
       </div>
     );
@@ -211,10 +224,8 @@ export function CheckoutPage({ slug }: Props) {
             )}
             {step === "payment" && (
               <PaymentStep
-                method={method}
                 total={total}
                 submitting={submitting}
-                onMethod={setMethod}
                 onConfirm={handleConfirm}
                 onBack={() => { setStep("delivery"); window.scrollTo({ top: 0, behavior: "instant" }); }}
               />

@@ -2,9 +2,11 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   createOrder,
   createPayment,
+  getCustomerOrder,
   listAddresses,
   previewOrder,
   validateCoupon,
+  type PaymentInput,
 } from "./service";
 import type { components } from "@/lib/api-types";
 
@@ -48,7 +50,24 @@ export function useCreateOrder(slug: string) {
 
 export function useCreatePayment(slug: string) {
   return useMutation({
-    mutationFn: ({ orderId, method }: { orderId: string; method: string }) =>
-      createPayment(slug, orderId, method),
+    mutationFn: ({ orderId, input }: { orderId: string; input: PaymentInput }) =>
+      createPayment(slug, orderId, input),
+  });
+}
+
+/**
+ * Polling do status do pedido (PIX). Refaz a cada 4s enquanto `Pending`;
+ * para sozinho quando o pedido vira `Confirmed`/`Cancelled` (estado terminal).
+ */
+export function useOrderStatusPolling(slug: string, orderId: string | null, enabled: boolean) {
+  return useQuery({
+    queryKey: ["order-status", slug, orderId],
+    queryFn: () => getCustomerOrder(slug, orderId!),
+    enabled: enabled && !!orderId,
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      return status === "Confirmed" || status === "Cancelled" ? false : 4000;
+    },
+    refetchIntervalInBackground: true,
   });
 }

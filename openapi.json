@@ -6,10 +6,71 @@
   },
   "servers": [
     {
-      "url": "http://localhost:5250/"
+      "url": "http://localhost:5248/"
     }
   ],
   "paths": {
+    "/webhooks/asaas": {
+      "post": {
+        "tags": [
+          "AsaasWebhook"
+        ],
+        "parameters": [
+          {
+            "name": "asaas-access-token",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestAsaasWebhook"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestAsaasWebhook"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestAsaasWebhook"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/auth/register": {
       "post": {
         "tags": [
@@ -216,7 +277,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -685,7 +746,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       },
       "post": {
@@ -755,7 +816,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -818,7 +879,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       },
       "put": {
@@ -902,7 +963,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       },
       "delete": {
@@ -946,7 +1007,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -978,7 +1039,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       },
       "post": {
@@ -1048,7 +1109,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -1111,7 +1172,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       },
       "put": {
@@ -1195,7 +1256,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       },
       "delete": {
@@ -1239,7 +1300,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -1301,7 +1362,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       },
       "post": {
@@ -1401,7 +1462,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -1490,7 +1551,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       },
       "post": {
@@ -1617,7 +1678,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -1649,7 +1710,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       },
       "post": {
@@ -1719,7 +1780,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -1822,7 +1883,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       },
       "delete": {
@@ -1866,7 +1927,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -1989,7 +2050,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -2021,7 +2082,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -2053,7 +2114,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -2116,7 +2177,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -2219,7 +2280,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -2291,7 +2352,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       },
       "get": {
@@ -2462,7 +2523,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       },
       "delete": {
@@ -2526,7 +2587,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -2558,7 +2619,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       },
       "post": {
@@ -2628,7 +2689,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -2691,7 +2752,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       },
       "put": {
@@ -2775,7 +2836,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       },
       "delete": {
@@ -2819,7 +2880,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -2922,7 +2983,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -3008,7 +3069,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       },
       "delete": {
@@ -3052,7 +3113,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -3155,7 +3216,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -3201,7 +3262,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -3382,7 +3443,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -3672,7 +3733,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       },
       "put": {
@@ -3762,7 +3823,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -3794,7 +3855,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -3896,7 +3957,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -4027,7 +4088,272 @@
           }
         },
         "security": [
-          { }
+          {}
+        ]
+      }
+    },
+    "/store/payment-account": {
+      "post": {
+        "tags": [
+          "StorePaymentAccount"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestCreateStorePaymentAccount"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestCreateStorePaymentAccount"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestCreateStorePaymentAccount"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseStorePaymentAccount"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseStorePaymentAccount"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseStorePaymentAccount"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {}
+        ]
+      },
+      "get": {
+        "tags": [
+          "StorePaymentAccount"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseStorePaymentAccount"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseStorePaymentAccount"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseStorePaymentAccount"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {}
+        ]
+      }
+    },
+    "/store/payments/{paymentId}/refund": {
+      "post": {
+        "tags": [
+          "StorePayment"
+        ],
+        "parameters": [
+          {
+            "name": "paymentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponsePayment"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponsePayment"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponsePayment"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {}
         ]
       }
     },
@@ -4059,7 +4385,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       },
       "post": {
@@ -4169,7 +4495,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -4292,7 +4618,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       },
       "delete": {
@@ -4356,7 +4682,7 @@
           }
         },
         "security": [
-          { }
+          {}
         ]
       }
     },
@@ -4511,6 +4837,44 @@
   },
   "components": {
     "schemas": {
+      "ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "detail": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instance": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "RequestAcceptInvite": {
         "type": "object",
         "properties": {
@@ -4561,6 +4925,41 @@
             "type": "string"
           },
           "role": {
+            "type": "string"
+          }
+        }
+      },
+      "RequestAsaasWebhook": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "event": {
+            "type": "string"
+          },
+          "payment": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RequestAsaasWebhookPayment"
+              }
+            ]
+          }
+        }
+      },
+      "RequestAsaasWebhookPayment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
             "type": "string"
           }
         }
@@ -4718,6 +5117,17 @@
           }
         }
       },
+      "RequestCreateStorePaymentAccount": {
+        "type": "object",
+        "properties": {
+          "mobilePhone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "RequestForgotPassword": {
         "type": "object",
         "properties": {
@@ -4776,6 +5186,23 @@
         "properties": {
           "method": {
             "type": "string"
+          },
+          "customerCpfCnpj": {
+            "type": "string"
+          },
+          "creditCardToken": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "installments": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
           }
         }
       },
@@ -6045,6 +6472,14 @@
             ],
             "format": "double"
           },
+          "installments": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
           "externalTransactionId": {
             "type": [
               "null",
@@ -6060,6 +6495,24 @@
           },
           "orderStatus": {
             "type": "string"
+          },
+          "pixCopyPaste": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pixQrCodeBase64": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "invoiceUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -6446,6 +6899,28 @@
           }
         }
       },
+      "ResponseStorePaymentAccount": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "walletId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "canReceivePayments": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ResponseTeamMember": {
         "type": "object",
         "properties": {
@@ -6573,6 +7048,9 @@
   },
   "tags": [
     {
+      "name": "AsaasWebhook"
+    },
+    {
       "name": "Auth"
     },
     {
@@ -6625,6 +7103,12 @@
     },
     {
       "name": "Store"
+    },
+    {
+      "name": "StorePaymentAccount"
+    },
+    {
+      "name": "StorePayment"
     },
     {
       "name": "Team"

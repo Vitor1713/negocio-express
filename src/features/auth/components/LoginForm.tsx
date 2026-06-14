@@ -11,10 +11,10 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { AppButton, AppInput, Icon } from "@/components/ui";
-import { loginSchema, lojistaLoginSchema, type LojistaLoginValues } from "../schema";
+import { loginSchema, lojistaLoginSchema, type LojistaLoginValues, type LoginValues } from "../schema";
 
-/** Valores emitidos: o painel inclui storeSlug; a vitrine, não. */
-export type LoginSubmitValues = LojistaLoginValues;
+/** Valores emitidos: o painel inclui storeSlug; a vitrine, não (por isso opcional). */
+export type LoginSubmitValues = LoginValues & { storeSlug?: string };
 
 type FieldErrors = Partial<Record<keyof LojistaLoginValues, string>>;
 
