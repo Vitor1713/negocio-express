@@ -18,6 +18,7 @@ function LojistaLoginFormInner() {
       notice={justReset ? "Senha redefinida com sucesso. Faça login com a nova senha." : null}
       registerHref="/register"
       storeField
+      socialLogin={false}
     />
   );
 }
@@ -25,7 +26,11 @@ function LojistaLoginFormInner() {
 export function LojistaLoginForm() {
   // useSearchParams exige um limite de Suspense em páginas estáticas.
   return (
-    <Suspense fallback={<LoginForm onSubmit={() => {}} registerHref="/register" storeField />}>
+    <Suspense
+      fallback={
+        <LoginForm onSubmit={() => {}} registerHref="/register" storeField socialLogin={false} />
+      }
+    >
       <LojistaLoginFormInner />
     </Suspense>
   );
