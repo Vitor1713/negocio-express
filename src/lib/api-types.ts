@@ -393,6 +393,8 @@ export interface paths {
                 query?: {
                     search?: string;
                     categoryId?: string;
+                    page?: number | string;
+                    pageSize?: number | string;
                 };
                 header?: never;
                 path: {
@@ -1847,7 +1849,11 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                    search?: string;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -3645,6 +3651,9 @@ export interface components {
         };
         ResponseCatalogProducts: {
             products?: components["schemas"]["ResponseCatalogProduct"][];
+            /** Format: int32 */
+            total?: number | string;
+            hasMore?: boolean;
         };
         ResponseCatalogReview: {
             /** Format: int32 */
@@ -3921,6 +3930,9 @@ export interface components {
         };
         ResponseProducts: {
             products?: components["schemas"]["ResponseProductShort"][];
+            /** Format: int32 */
+            total?: number | string;
+            hasMore?: boolean;
         };
         ResponseProductShort: {
             /** Format: uuid */

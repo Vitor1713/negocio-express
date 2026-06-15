@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { AppErrorState, AppSpinner, Icon } from "@/components/ui";
+import { AppErrorState, AppSpinner, Icon, InfiniteScrollSentinel } from "@/components/ui";
 import { useAuth } from "@/features/auth";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { useCart } from "../cart-context";
 import { useStoreProducts } from "../hooks";
 import { storeBRL } from "../format";
-import type { CatalogProduct, PublicStore, StoreCategory } from "../service";
+import type { CatalogPage, PublicStore, StoreCategory } from "../service";
 import { StoreProductCard } from "./StoreProductCard";
 import { StoreFooter } from "./StoreFooter";
 
@@ -16,27 +17,30 @@ type Props = {
   storeName: string;
   /** Dados públicos da loja (status, entrega). Opcional: ausente em fallback. */
   store?: PublicStore | null;
-  initialProducts: CatalogProduct[];
+  /** 1ª página do catálogo vinda do SSR (semeia o scroll infinito). */
+  initialPage: CatalogPage;
   categories: StoreCategory[];
 };
 
-export function StoreCatalog({ slug, storeName, store, initialProducts, categories }: Props) {
+export function StoreCatalog({ slug, storeName, store, initialPage, categories }: Props) {
   const { count } = useCart();
   const { isAuthenticated, role } = useAuth();
   const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 300);
 
-  const { data: products, isFetching, isError, error } = useStoreProducts(
-    slug,
-    categoryId,
-    initialProducts,
-  );
+  const {
+    data,
+    isFetching,
+    isError,
+    error,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useStoreProducts(slug, categoryId, debouncedSearch, initialPage);
 
-  const list = products ?? [];
-  const q = search.trim().toLowerCase();
-  const filtered = q
-    ? list.filter((p) => p.name?.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q))
-    : list;
+  const filtered = data?.pages.flatMap((p) => p.products) ?? [];
+  const total = data?.pages[0]?.total ?? 0;
 
   // Resumo de entrega da loja (quando os dados públicos estão disponíveis).
   const deliveryInfo = store
@@ -170,7 +174,7 @@ export function StoreCatalog({ slug, storeName, store, initialProducts, categori
               {storeName}
             </h1>
             <p className="text-sm text-ink-500 mt-0.5">
-              {filtered.length} {filtered.length === 1 ? "item" : "itens"}
+              {total} {total === 1 ? "item" : "itens"}
               {deliveryInfo.length > 0 && (
                 <span className="text-ink-400"> · {deliveryInfo.join(" · ")}</span>
               )}
@@ -194,6 +198,11 @@ export function StoreCatalog({ slug, storeName, store, initialProducts, categori
             {filtered.map((p) => (
               <StoreProductCard key={p.id} slug={slug} product={p} />
             ))}
+            <InfiniteScrollSentinel
+              hasMore={hasNextPage}
+              isLoading={isFetchingNextPage}
+              onLoadMore={fetchNextPage}
+            />
           </div>
         )}
       </main>

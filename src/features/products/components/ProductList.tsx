@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { AppButton, AppEmptyState, AppErrorState, AppSpinner } from "@/components/ui";
+import {
+  AppButton,
+  AppEmptyState,
+  AppErrorState,
+  AppSpinner,
+  InfiniteScrollSentinel,
+} from "@/components/ui";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { useProducts } from "../hooks";
 import { ProductCard } from "./ProductCard";
 
@@ -11,8 +18,18 @@ type Props = {
 };
 
 export function ProductList({ onNew, onEdit }: Props) {
-  const { data: products, isLoading, isError, error } = useProducts();
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 300);
+
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useProducts(debouncedSearch);
 
   if (isLoading) {
     return (
@@ -31,11 +48,8 @@ export function ProductList({ onNew, onEdit }: Props) {
     );
   }
 
-  const list = products ?? [];
-  const q = search.toLowerCase();
-  const filtered = q
-    ? list.filter((p) => p.name?.toLowerCase().includes(q) || p.slug?.includes(q))
-    : list;
+  const filtered = data?.pages.flatMap((p) => p.products) ?? [];
+  const total = data?.pages[0]?.total ?? 0;
 
   return (
     <>
@@ -45,7 +59,7 @@ export function ProductList({ onNew, onEdit }: Props) {
           <h1 className="font-display font-extrabold text-2xl text-ink-900 tracking-tight">
             Produtos
           </h1>
-          <p className="text-sm text-ink-500 mt-0.5">{list.length} produtos no catálogo</p>
+          <p className="text-sm text-ink-500 mt-0.5">{total} produtos no catálogo</p>
         </div>
         <AppButton icon="Plus" onClick={onNew}>Novo produto</AppButton>
       </div>
@@ -83,6 +97,11 @@ export function ProductList({ onNew, onEdit }: Props) {
           {filtered.map((p) => (
             <ProductCard key={p.id} product={p} onClick={() => onEdit(p.id!)} />
           ))}
+          <InfiniteScrollSentinel
+            hasMore={hasNextPage}
+            isLoading={isFetchingNextPage}
+            onLoadMore={fetchNextPage}
+          />
         </div>
       )}
     </>

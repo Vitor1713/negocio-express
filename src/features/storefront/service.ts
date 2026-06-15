@@ -18,18 +18,39 @@ export async function getStore(slug: string): Promise<PublicStore> {
   return api.get<PublicStore>(`/stores/${enc(slug)}`, { auth: false });
 }
 
-/** Catálogo público de uma loja. Filtros opcionais via query (server-side). */
+/** Tamanho de página padrão do scroll infinito da vitrine. */
+export const CATALOG_PAGE_SIZE = 20;
+
+export type CatalogPage = {
+  products: CatalogProduct[];
+  total: number;
+  hasMore: boolean;
+};
+
+export type ListStoreProductsParams = {
+  search?: string;
+  categoryId?: string;
+  page?: number;
+  pageSize?: number;
+};
+
+/** Catálogo público de uma loja, paginado (scroll infinito). Filtros server-side. */
 export async function listStoreProducts(
   slug: string,
-  filters?: { search?: string; categoryId?: string },
+  params?: ListStoreProductsParams,
   signal?: AbortSignal,
-): Promise<CatalogProduct[]> {
+): Promise<CatalogPage> {
+  const { search, categoryId, page = 1, pageSize = CATALOG_PAGE_SIZE } = params ?? {};
   const data = await api.get<Schemas["ResponseCatalogProducts"]>(`/stores/${enc(slug)}/products`, {
     auth: false,
     signal,
-    query: { search: filters?.search, categoryId: filters?.categoryId },
+    query: { search: search?.trim() || undefined, categoryId, page, pageSize },
   });
-  return data.products ?? [];
+  return {
+    products: data.products ?? [],
+    total: Number(data.total ?? 0),
+    hasMore: data.hasMore ?? false,
+  };
 }
 
 /** Detalhe público de um produto (variações, imagens, avaliações). */

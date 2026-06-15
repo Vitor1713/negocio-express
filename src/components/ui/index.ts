@@ -10,4 +10,5 @@ export { AppField, type AppFieldProps } from "./AppField";
 export { AppSpinner } from "./AppSpinner";
 export { AppEmptyState, type AppEmptyStateProps } from "./AppEmptyState";
 export { AppErrorState, type AppErrorStateProps } from "./AppErrorState";
+export { InfiniteScrollSentinel } from "./InfiniteScrollSentinel";
 export { Logo } from "./Logo";
