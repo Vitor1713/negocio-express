@@ -11,10 +11,10 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { AppButton, AppInput, Icon } from "@/components/ui";
-import { loginSchema, lojistaLoginSchema, type LojistaLoginValues } from "../schema";
+import { loginSchema, lojistaLoginSchema, type LojistaLoginValues, type LoginValues } from "../schema";
 
-/** Valores emitidos: o painel inclui storeSlug; a vitrine, não. */
-export type LoginSubmitValues = LojistaLoginValues;
+/** Valores emitidos: o painel inclui storeSlug; a vitrine, não (por isso opcional). */
+export type LoginSubmitValues = LoginValues & { storeSlug?: string };
 
 type FieldErrors = Partial<Record<keyof LojistaLoginValues, string>>;
 
@@ -35,6 +35,10 @@ type LoginFormProps = {
    * Na vitrine fica `false`: a loja já vem do slug da rota.
    */
   storeField?: boolean;
+  /**
+   * Exibe o login social (Google). No painel do lojista fica `false`.
+   */
+  socialLogin?: boolean;
 };
 
 export function LoginForm({
@@ -46,6 +50,7 @@ export function LoginForm({
   registerHref = "/register",
   forgotHref = "/forgot-password",
   storeField = false,
+  socialLogin = true,
 }: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -151,20 +156,24 @@ export function LoginForm({
         {submitLabel}
       </AppButton>
 
-      <div className="flex items-center gap-3 py-1 text-xs text-ink-400">
-        <span className="h-px flex-1 bg-ink-200" />
-        ou
-        <span className="h-px flex-1 bg-ink-200" />
-      </div>
+      {socialLogin && (
+        <>
+          <div className="flex items-center gap-3 py-1 text-xs text-ink-400">
+            <span className="h-px flex-1 bg-ink-200" />
+            ou
+            <span className="h-px flex-1 bg-ink-200" />
+          </div>
 
-      {/* Placeholder: login social sem endpoint no contrato ainda. */}
-      <button
-        type="button"
-        className="inline-flex w-full items-center justify-center gap-3 rounded-lg border border-ink-200 bg-white px-5 py-3 text-[15px] font-medium text-ink-900 transition-all hover:border-ink-300 hover:bg-ink-50"
-      >
-        <GoogleIcon size={18} />
-        Entrar com Google
-      </button>
+          {/* Placeholder: login social sem endpoint no contrato ainda. */}
+          <button
+            type="button"
+            className="inline-flex w-full items-center justify-center gap-3 rounded-lg border border-ink-200 bg-white px-5 py-3 text-[15px] font-medium text-ink-900 transition-all hover:border-ink-300 hover:bg-ink-50"
+          >
+            <GoogleIcon size={18} />
+            Entrar com Google
+          </button>
+        </>
+      )}
 
       <p className="pt-2 text-center text-sm text-ink-500">
         Não tem conta?{" "}

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/features/auth/auth-context";
 import {
   addImage,
@@ -21,8 +21,18 @@ import {
 export const PRODUCTS_KEY = ["products"] as const;
 export const CATEGORIES_KEY = ["categories"] as const;
 
-export function useProducts() {
-  return useQuery({ queryKey: PRODUCTS_KEY, queryFn: listProducts });
+/**
+ * Lista paginada de produtos do dashboard (scroll infinito). A busca é server-side
+ * e entra na queryKey, refazendo a paginação a partir da página 1 quando muda.
+ */
+export function useProducts(search?: string) {
+  const term = search?.trim() || undefined;
+  return useInfiniteQuery({
+    queryKey: [...PRODUCTS_KEY, { search: term ?? null }],
+    queryFn: ({ pageParam }) => listProducts({ page: pageParam, search: term }),
+    initialPageParam: 1,
+    getNextPageParam: (last, pages) => (last.hasMore ? pages.length + 1 : undefined),
+  });
 }
 
 export function useProduct(id: string) {

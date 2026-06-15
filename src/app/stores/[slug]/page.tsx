@@ -7,7 +7,7 @@ import {
   listStoreProducts,
   listStoreCategories,
   storeNameFromSlug,
-  type CatalogProduct,
+  type CatalogPage,
   type PublicStore,
   type StoreCategory,
 } from "@/features/storefront";
@@ -41,9 +41,9 @@ export default async function StorePage({ params }: Params) {
   }
   const storeName = store?.name ?? storeNameFromSlug(slug);
 
-  let products: CatalogProduct[];
+  let initialPage: CatalogPage;
   try {
-    products = await listStoreProducts(slug);
+    initialPage = await listStoreProducts(slug);
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) notFound();
     throw err;
@@ -61,7 +61,7 @@ export default async function StorePage({ params }: Params) {
       slug={slug}
       storeName={storeName}
       store={store}
-      initialProducts={products}
+      initialPage={initialPage}
       categories={categories}
     />
   );

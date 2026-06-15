@@ -30,7 +30,7 @@ type Props = {
   onBack: () => void;
 };
 
-export function Step3Plan({ submitting, onConfirm, onBack }: Props) {
+export function Step4Plan({ submitting, onConfirm, onBack }: Props) {
   const { data: plans = [], isLoading, isError } = usePlans();
   const [selected, setSelected] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<Plan | null>(null);

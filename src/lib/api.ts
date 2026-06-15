@@ -47,6 +47,8 @@ type RequestOptions = {
   signal?: AbortSignal;
   /** Querystring (valores undefined/null são ignorados). */
   query?: Record<string, string | number | boolean | undefined | null>;
+  /** Headers extras (ex.: Idempotency-Key na criação de pedido). */
+  headers?: Record<string, string>;
 };
 
 function buildUrl(path: string, query?: RequestOptions["query"]) {
@@ -81,7 +83,7 @@ async function request<TResponse>(
   body?: unknown,
   options: RequestOptions = {},
 ): Promise<TResponse> {
-  const { auth = true, signal, query } = options;
+  const { auth = true, signal, query, headers: extraHeaders } = options;
 
   const headers: Record<string, string> = { Accept: "application/json" };
   if (body !== undefined) headers["Content-Type"] = "application/json";
@@ -90,6 +92,8 @@ async function request<TResponse>(
     const token = tokenProvider();
     if (token) headers.Authorization = `Bearer ${token}`;
   }
+
+  if (extraHeaders) Object.assign(headers, extraHeaders);
 
   const res = await fetch(buildUrl(path, query), {
     method,

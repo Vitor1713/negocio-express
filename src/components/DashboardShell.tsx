@@ -20,6 +20,7 @@ const NAV: NavItem[] = [
   { href: "/dashboard/categories", label: "Categorias", icon: "Tags" },
   { href: "/dashboard/coupons", label: "Cupons", icon: "Ticket" },
   { href: "/dashboard/orders", label: "Pedidos", icon: "ShoppingBag" },
+  { href: "/dashboard/payments", label: "Pagamentos", icon: "Wallet" },
   { href: "/dashboard/deliverers", label: "Entregadores", icon: "Bike" },
   { href: "/dashboard/team", label: "Equipe", icon: "Users" },
   { href: "/dashboard/settings", label: "Configurações", icon: "Settings" },

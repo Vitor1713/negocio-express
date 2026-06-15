@@ -14,9 +14,31 @@ export type RequestProduct = Schemas["RequestProduct"];
 export type RequestProductVariant = Schemas["RequestProductVariant"];
 export type RequestProductImage = Schemas["RequestProductImage"];
 
-export async function listProducts(): Promise<ProductShort[]> {
-  const data = await api.get<Schemas["ResponseProducts"]>("/products");
-  return data.products ?? [];
+/** Tamanho de página padrão do scroll infinito do dashboard. */
+export const PRODUCTS_PAGE_SIZE = 20;
+
+export type ProductsPage = {
+  products: ProductShort[];
+  total: number;
+  hasMore: boolean;
+};
+
+export type ListProductsParams = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+};
+
+export async function listProducts(params: ListProductsParams = {}): Promise<ProductsPage> {
+  const { page = 1, pageSize = PRODUCTS_PAGE_SIZE, search } = params;
+  const data = await api.get<Schemas["ResponseProducts"]>("/products", {
+    query: { page, pageSize, search: search?.trim() || undefined },
+  });
+  return {
+    products: data.products ?? [],
+    total: Number(data.total ?? 0),
+    hasMore: data.hasMore ?? false,
+  };
 }
 
 export async function getProduct(id: string): Promise<Product> {
