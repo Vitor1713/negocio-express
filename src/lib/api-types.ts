@@ -2991,6 +2991,65 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/store/payment-account/refresh-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ResponseStorePaymentAccount"];
+                        "application/json": components["schemas"]["ResponseStorePaymentAccount"];
+                        "text/json": components["schemas"]["ResponseStorePaymentAccount"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ResponseError"];
+                        "application/json": components["schemas"]["ResponseError"];
+                        "text/json": components["schemas"]["ResponseError"];
+                    };
+                };
+                /** @description Bad Gateway */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ResponseError"];
+                        "application/json": components["schemas"]["ResponseError"];
+                        "text/json": components["schemas"]["ResponseError"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/store/payments/{paymentId}/refund": {
         parameters: {
             query?: never;
@@ -3562,7 +3621,7 @@ export interface components {
             storePostalCode?: string;
             storeStreet?: string;
             storeNumber?: string;
-            storeComplement?: string | null;
+            storeComplement?: null | string;
             storeNeighborhood?: string;
             storeCity?: string;
             storeState?: string;
@@ -4031,6 +4090,16 @@ export interface components {
             minOrderAmount?: number | string;
             /** Format: int32 */
             estimatedDeliveryMinutes?: number | string;
+            postalCode?: string;
+            street?: string;
+            number?: string;
+            complement?: null | string;
+            neighborhood?: string;
+            city?: string;
+            state?: string;
+            companyType?: string;
+            /** Format: double */
+            incomeValue?: number | string;
             /** Format: date-time */
             createdAt?: string;
         };

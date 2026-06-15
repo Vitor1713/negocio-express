@@ -13,7 +13,12 @@ import {
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/features/auth";
 import { paymentAccountStatusInfo } from "../status";
-import { usePaymentAccount, useCreatePaymentAccount, useStore } from "../hooks";
+import {
+  usePaymentAccount,
+  useCreatePaymentAccount,
+  useRefreshPaymentAccountStatus,
+  useStore,
+} from "../hooks";
 import type { PaymentAccount } from "../service";
 
 const fmtDate = (iso?: string) =>
@@ -165,8 +170,27 @@ function Onboarding() {
 }
 
 function AccountStatus({ account }: { account: PaymentAccount }) {
+  const { storeRole } = useAuth();
+  const refresh = useRefreshPaymentAccountStatus();
+  const [refreshError, setRefreshError] = useState<string | null>(null);
+
   const status = paymentAccountStatusInfo(account.status);
   const canReceive = !!account.canReceivePayments;
+
+  // Só o Owner reconsulta; e só faz sentido enquanto está pendente (Rejected é terminal).
+  const isOwner = !storeRole || storeRole === "Owner";
+  const canRefresh = isOwner && !canReceive && account.status !== "Rejected";
+
+  async function handleRefresh() {
+    setRefreshError(null);
+    try {
+      await refresh.mutateAsync();
+    } catch (err) {
+      setRefreshError(
+        err instanceof ApiError ? err.messages[0] : "Não foi possível verificar o status. Tente novamente.",
+      );
+    }
+  }
 
   return (
     <div className="max-w-2xl space-y-4">
@@ -179,13 +203,32 @@ function AccountStatus({ account }: { account: PaymentAccount }) {
       ) : (
         <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3.5 flex items-start gap-3 text-sm text-amber-800">
           <Icon name="TriangleAlert" size={18} className="shrink-0 mt-0.5 text-amber-600" />
-          <div>
+          <div className="min-w-0 flex-1">
             <div className="font-medium">Sua conta ainda não pode receber pagamentos.</div>
             <p className="mt-0.5 text-amber-700">
               {account.status === "Rejected"
                 ? "A conta foi recusada pelo provedor. Entre em contato com o suporte."
-                : "Estamos analisando seu cadastro. Você será avisado assim que for aprovado."}
+                : "Estamos analisando seu cadastro. A aprovação é verificada automaticamente, mas você pode conferir agora."}
             </p>
+            {canRefresh && (
+              <div className="mt-3">
+                <AppButton
+                  variant="secondary"
+                  size="sm"
+                  icon="RefreshCw"
+                  loading={refresh.isPending}
+                  onClick={handleRefresh}
+                >
+                  Verificar aprovação
+                </AppButton>
+                {refreshError && (
+                  <p className="mt-2 text-xs text-red-700 flex items-center gap-1.5">
+                    <Icon name="CircleAlert" size={14} className="shrink-0" />
+                    {refreshError}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

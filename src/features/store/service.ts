@@ -24,8 +24,9 @@ export async function updateStore(body: UpdateStoreInput): Promise<Store> {
 
 /**
  * Subconta de pagamento Asaas da loja (split). Resolve pela própria loja (token).
- * - GET    /store/payment-account → status da conta (404 se ainda não criada)
- * - POST   /store/payment-account → cria a subconta (Owner)
+ * - GET    /store/payment-account                → status da conta (404 se ainda não criada)
+ * - POST   /store/payment-account                → cria a subconta (Owner)
+ * - POST   /store/payment-account/refresh-status → reconsulta o status no provedor (Owner)
  */
 export async function getPaymentAccount(): Promise<PaymentAccount> {
   return api.get<PaymentAccount>("/store/payment-account");
@@ -33,6 +34,11 @@ export async function getPaymentAccount(): Promise<PaymentAccount> {
 
 export async function createPaymentAccount(body: CreatePaymentAccountInput): Promise<PaymentAccount> {
   return api.post<PaymentAccount>("/store/payment-account", body);
+}
+
+/** Reconsulta o status da subconta no provedor e devolve o estado atualizado (Owner). */
+export async function refreshPaymentAccountStatus(): Promise<PaymentAccount> {
+  return api.post<PaymentAccount>("/store/payment-account/refresh-status");
 }
 
 /** Estorna um pagamento (Manager). POST /store/payments/{paymentId}/refund. */

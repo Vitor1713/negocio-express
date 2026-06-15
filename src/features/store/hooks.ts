@@ -8,6 +8,7 @@ import {
   createPaymentAccount,
   getPaymentAccount,
   getStore,
+  refreshPaymentAccountStatus,
   refundPayment,
   updateStore,
   type CreatePaymentAccountInput,
@@ -49,6 +50,15 @@ export function useCreatePaymentAccount() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (body: CreatePaymentAccountInput) => createPaymentAccount(body),
+    onSuccess: (account) => qc.setQueryData(PAYMENT_ACCOUNT_KEY, account),
+  });
+}
+
+/** Reconsulta o status da subconta no provedor (Owner) e semeia o cache com o estado atualizado. */
+export function useRefreshPaymentAccountStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => refreshPaymentAccountStatus(),
     onSuccess: (account) => qc.setQueryData(PAYMENT_ACCOUNT_KEY, account),
   });
 }

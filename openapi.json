@@ -277,7 +277,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -772,7 +772,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       },
       "post": {
@@ -842,7 +842,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -905,7 +905,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       },
       "put": {
@@ -989,7 +989,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       },
       "delete": {
@@ -1033,7 +1033,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -1065,7 +1065,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       },
       "post": {
@@ -1135,7 +1135,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -1198,7 +1198,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       },
       "put": {
@@ -1282,7 +1282,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       },
       "delete": {
@@ -1326,7 +1326,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -1388,7 +1388,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       },
       "post": {
@@ -1488,7 +1488,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -1577,7 +1577,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       },
       "post": {
@@ -1704,7 +1704,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -1736,7 +1736,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       },
       "post": {
@@ -1806,7 +1806,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -1909,7 +1909,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       },
       "delete": {
@@ -1953,7 +1953,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -2076,7 +2076,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -2108,7 +2108,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -2140,7 +2140,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -2203,7 +2203,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -2306,7 +2306,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -2378,7 +2378,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       },
       "get": {
@@ -2549,7 +2549,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       },
       "delete": {
@@ -2613,7 +2613,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -2680,7 +2680,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       },
       "post": {
@@ -2750,7 +2750,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -2813,7 +2813,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       },
       "put": {
@@ -2897,7 +2897,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       },
       "delete": {
@@ -2941,7 +2941,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -3044,7 +3044,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -3130,7 +3130,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       },
       "delete": {
@@ -3174,7 +3174,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -3277,7 +3277,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -3323,7 +3323,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -3504,7 +3504,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -3794,7 +3794,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       },
       "put": {
@@ -3884,7 +3884,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -3916,7 +3916,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -4018,7 +4018,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -4149,7 +4149,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -4261,7 +4261,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       },
       "get": {
@@ -4311,7 +4311,79 @@
           }
         },
         "security": [
-          {}
+          { }
+        ]
+      }
+    },
+    "/store/payment-account/refresh-status": {
+      "post": {
+        "tags": [
+          "StorePaymentAccount"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseStorePaymentAccount"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseStorePaymentAccount"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseStorePaymentAccount"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponseError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          { }
         ]
       }
     },
@@ -4414,7 +4486,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -4446,7 +4518,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       },
       "post": {
@@ -4556,7 +4628,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -4679,7 +4751,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       },
       "delete": {
@@ -4743,7 +4815,7 @@
           }
         },
         "security": [
-          {}
+          { }
         ]
       }
     },
@@ -5452,8 +5524,8 @@
           },
           "storeComplement": {
             "type": [
-              "string",
-              "null"
+              "null",
+              "string"
             ]
           },
           "storeNeighborhood": {
@@ -7010,6 +7082,41 @@
               "string"
             ],
             "format": "int32"
+          },
+          "postalCode": {
+            "type": "string"
+          },
+          "street": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "complement": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "neighborhood": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "companyType": {
+            "type": "string"
+          },
+          "incomeValue": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "number",
+              "string"
+            ],
+            "format": "double"
           },
           "createdAt": {
             "type": "string",
