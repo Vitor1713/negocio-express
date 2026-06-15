@@ -29,31 +29,12 @@ function formatPhone(raw: string) {
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
 }
 
-function formatCNPJ(raw: string) {
-  const d = raw.replace(/\D/g, "").slice(0, 14);
-  if (d.length <= 2) return d;
-  if (d.length <= 5) return `${d.slice(0, 2)}.${d.slice(2)}`;
-  if (d.length <= 8) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5)}`;
-  if (d.length <= 12) return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8)}`;
-  return `${d.slice(0, 2)}.${d.slice(2, 5)}.${d.slice(5, 8)}/${d.slice(8, 12)}-${d.slice(12)}`;
-}
-
 const schema = z.object({
   storeName: z.string().min(1, "Informe o nome da loja."),
   storeSlug: z
     .string()
     .min(3, "Escolha um endereço com ao menos 3 letras.")
     .regex(/^[a-z0-9-]+$/, "Use apenas letras minúsculas, números e -"),
-  storeCnpj: z
-    .string()
-    .optional()
-    .transform((v) => (v ? v.replace(/\D/g, "") : ""))
-    .pipe(
-      z.union([
-        z.string().length(0),
-        z.string().length(14, "CNPJ deve ter 14 dígitos."),
-      ]),
-    ),
   storeEmail: z.string().email("E-mail da loja inválido."),
   storePhone: z
     .string()
@@ -67,7 +48,6 @@ export type Step2Values = z.infer<typeof schema>;
 type RawStep2 = {
   storeName: string;
   storeSlug: string;
-  storeCnpj?: string;
   storeEmail: string;
   storePhone: string;
   storeCategory: string;
@@ -101,7 +81,6 @@ export function Step2StoreData({
     defaultValues: {
       storeName: "",
       storeSlug: "",
-      storeCnpj: "",
       storeEmail: prefillEmail ?? "",
       storePhone: prefillPhone ? formatPhone(prefillPhone) : "",
       storeCategory: "",
@@ -177,32 +156,18 @@ export function Step2StoreData({
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <AppInput
-              label="CNPJ (opcional)"
-              placeholder="00.000.000/0000-00"
-              icon="Building2"
-              hint={!errors.storeCnpj?.message ? "Pessoa física? Pode deixar em branco." : undefined}
-              error={errors.storeCnpj?.message}
-              {...register("storeCnpj", {
-                onChange: (e) => {
-                  e.target.value = formatCNPJ(e.target.value);
-                },
-              })}
-            />
-            <AppInput
-              label="Telefone da loja"
-              required
-              placeholder="(11) 3333-4444"
-              icon="Phone"
-              error={errors.storePhone?.message}
-              {...register("storePhone", {
-                onChange: (e) => {
-                  e.target.value = formatPhone(e.target.value);
-                },
-              })}
-            />
-          </div>
+          <AppInput
+            label="Telefone da loja"
+            required
+            placeholder="(11) 3333-4444"
+            icon="Phone"
+            error={errors.storePhone?.message}
+            {...register("storePhone", {
+              onChange: (e) => {
+                e.target.value = formatPhone(e.target.value);
+              },
+            })}
+          />
 
           <AppInput
             label="E-mail de contato"

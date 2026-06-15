@@ -3559,6 +3559,16 @@ export interface components {
             storeEmail?: string;
             storePhone?: string;
             storeCategory?: string;
+            storePostalCode?: string;
+            storeStreet?: string;
+            storeNumber?: string;
+            storeComplement?: string | null;
+            storeNeighborhood?: string;
+            storeCity?: string;
+            storeState?: string;
+            storeCompanyType?: string;
+            /** Format: double */
+            storeIncomeValue?: number | string;
             /** Format: uuid */
             planId?: string;
         };

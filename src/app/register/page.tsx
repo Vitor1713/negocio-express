@@ -8,19 +8,22 @@ import {
   StepIndicator,
   Step1UserData,
   Step2StoreData,
-  Step3Plan,
+  Step3StoreFiscal,
+  Step4Plan,
   useRegister,
   type Step1Values,
   type Step2Values,
+  type Step3FiscalValues,
 } from "@/features/onboarding";
 import { useAuth } from "@/features/auth";
 import { ApiError } from "@/lib/api";
 
-const STEPS = ["Dados pessoais", "Dados da loja", "Plano"];
+const STEPS = ["Dados pessoais", "Dados da loja", "Endereço & dados fiscais", "Plano"];
 
 type WizardData = {
   step1?: Step1Values;
   step2?: Step2Values;
+  step3?: Step3FiscalValues;
 };
 
 export default function RegisterPage() {
@@ -43,8 +46,14 @@ export default function RegisterPage() {
     window.scrollTo({ top: 0, behavior: "instant" });
   }
 
+  function handleStep3(values: Step3FiscalValues) {
+    setData((d) => ({ ...d, step3: values }));
+    setStep(4);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }
+
   async function handlePlanConfirm(planId: string) {
-    if (!data.step1 || !data.step2) return;
+    if (!data.step1 || !data.step2 || !data.step3) return;
     setSubmitError(null);
 
     try {
@@ -54,10 +63,21 @@ export default function RegisterPage() {
         password: data.step1.password,
         storeName: data.step2.storeName,
         storeSlug: data.step2.storeSlug,
-        storeCnpj: data.step2.storeCnpj || undefined,
         storeEmail: data.step2.storeEmail,
         storePhone: data.step2.storePhone,
         storeCategory: data.step2.storeCategory,
+        // Dados fiscais/endereço (já normalizados pelo schema do passo 3:
+        // CNPJ/CEP só dígitos, UF maiúscula, faturamento numérico).
+        storeCnpj: data.step3.storeCnpj,
+        storeCompanyType: data.step3.storeCompanyType,
+        storeIncomeValue: data.step3.storeIncomeValue,
+        storePostalCode: data.step3.storePostalCode,
+        storeStreet: data.step3.storeStreet,
+        storeNumber: data.step3.storeNumber,
+        storeComplement: data.step3.storeComplement || undefined,
+        storeNeighborhood: data.step3.storeNeighborhood,
+        storeCity: data.step3.storeCity,
+        storeState: data.step3.storeState,
         planId,
       });
 
@@ -76,11 +96,13 @@ export default function RegisterPage() {
   const titles = [
     "Crie sua conta grátis",
     "Dados da sua loja",
+    "Endereço & dados fiscais",
     "Escolha seu plano",
   ];
   const subtitles = [
     "Comece em 2 minutos. Sem cartão de crédito.",
     "Essas informações aparecem na vitrine pública da sua loja.",
+    "Usamos esses dados para habilitar os pagamentos da sua loja.",
     "Comece grátis e faça upgrade quando quiser.",
   ];
 
@@ -100,7 +122,7 @@ export default function RegisterPage() {
       </header>
 
       <main className="w-full px-6 pb-16">
-        <div className={`mx-auto pt-8 ${step === 3 ? "max-w-[1040px]" : "max-w-[540px]"}`}>
+        <div className={`mx-auto pt-8 ${step === 4 ? "max-w-[1040px]" : "max-w-[540px]"}`}>
           {/* Erro de submissão */}
           {submitError && (
             <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 flex items-center gap-2">
@@ -114,7 +136,7 @@ export default function RegisterPage() {
             <h1 className="font-display font-extrabold text-[32px] leading-tight tracking-tight text-ink-900">
               {titles[step - 1]}
             </h1>
-            {step < 3 && (
+            {step < 4 && (
               <p className="mt-2 text-ink-500 text-[15px]">{subtitles[step - 1]}</p>
             )}
           </div>
@@ -150,9 +172,9 @@ export default function RegisterPage() {
           )}
 
           {step === 3 && (
-            <Step3Plan
-              submitting={registerMutation.isPending}
-              onConfirm={handlePlanConfirm}
+            <Step3StoreFiscal
+              defaultValues={data.step3}
+              onNext={handleStep3}
               onBack={() => {
                 setStep(2);
                 window.scrollTo({ top: 0, behavior: "instant" });
@@ -160,7 +182,18 @@ export default function RegisterPage() {
             />
           )}
 
-          {step < 3 && (
+          {step === 4 && (
+            <Step4Plan
+              submitting={registerMutation.isPending}
+              onConfirm={handlePlanConfirm}
+              onBack={() => {
+                setStep(3);
+                window.scrollTo({ top: 0, behavior: "instant" });
+              }}
+            />
+          )}
+
+          {step < 4 && (
             <p className="mt-8 text-center text-sm text-ink-500">
               Já tem conta?{" "}
               <Link
