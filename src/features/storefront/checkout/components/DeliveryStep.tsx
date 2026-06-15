@@ -1,7 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { AppButton, AppSpinner, Icon } from "@/components/ui";
 import { cn } from "@/lib/cn";
+import { useAuth } from "@/features/auth";
+import { AddressFormDrawer } from "../../account/components/AddressFormDrawer";
 import { useAddresses } from "../hooks";
 import type { Address } from "../service";
 
@@ -29,8 +32,11 @@ const TYPES = [
 ];
 
 export function DeliveryStep({ slug, deliveryType, addressId, onDeliveryType, onAddress, onNext, onBack }: Props) {
+  const { isAuthenticated } = useAuth();
   const { data: addresses, isLoading, isError } = useAddresses(slug);
+  const [formOpen, setFormOpen] = useState(false);
 
+  const hasAddresses = !!addresses?.length;
   const canProceed = deliveryType === "pickup" || (deliveryType === "delivery" && addressId);
 
   return (
@@ -65,7 +71,7 @@ export function DeliveryStep({ slug, deliveryType, addressId, onDeliveryType, on
 
           {isLoading ? (
             <div className="flex justify-center py-6"><AppSpinner /></div>
-          ) : isError || !addresses?.length ? (
+          ) : !isAuthenticated ? (
             <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800 flex items-start gap-2">
               <Icon name="Info" size={15} className="mt-0.5 shrink-0" />
               <span>
@@ -74,7 +80,17 @@ export function DeliveryStep({ slug, deliveryType, addressId, onDeliveryType, on
             </div>
           ) : (
             <div className="space-y-2.5">
-              {addresses.map((a) => {
+              {isError ? (
+                <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 flex items-start gap-2">
+                  <Icon name="CircleAlert" size={15} className="mt-0.5 shrink-0" />
+                  <span>Não foi possível carregar seus endereços. Você pode cadastrar um novo abaixo.</span>
+                </div>
+              ) : !hasAddresses ? (
+                <p className="text-[13.5px] text-ink-500">
+                  Você ainda não tem endereço cadastrado. Adicione um para receber seu pedido.
+                </p>
+              ) : null}
+              {addresses?.map((a) => {
                 const { line1, line2 } = fmtAddress(a);
                 const active = addressId === a.id;
                 return (
@@ -95,6 +111,12 @@ export function DeliveryStep({ slug, deliveryType, addressId, onDeliveryType, on
                   </button>
                 );
               })}
+              <button
+                onClick={() => setFormOpen(true)}
+                className="w-full p-3.5 rounded-xl border border-dashed border-ink-300 text-sm font-medium text-ink-600 hover:border-brand-400 hover:text-brand-700 transition-all inline-flex items-center justify-center gap-1.5"
+              >
+                <Icon name="Plus" size={15} /> Adicionar novo endereço
+              </button>
             </div>
           )}
         </section>
@@ -124,6 +146,13 @@ export function DeliveryStep({ slug, deliveryType, addressId, onDeliveryType, on
           Ir para pagamento
         </AppButton>
       </div>
+
+      <AddressFormDrawer
+        slug={slug}
+        open={formOpen}
+        onClose={() => setFormOpen(false)}
+        onCreated={(a) => a.id && onAddress(a.id)}
+      />
     </div>
   );
 }

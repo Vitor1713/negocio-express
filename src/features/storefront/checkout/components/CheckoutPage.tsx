@@ -69,6 +69,7 @@ export function CheckoutPage({ slug }: Props) {
     try {
       const order = await createOrder.mutateAsync({
         deliveryType,
+        addressId: deliveryType === "delivery" ? addressId : null,
         couponCode: coupon?.code ?? null,
         items: items.map((i) => ({ productVariantId: i.variantId, quantity: i.qty })),
       });
