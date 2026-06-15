@@ -129,8 +129,9 @@ export function CheckoutPage({ slug }: Props) {
     </header>
   );
 
-  // Carrinho vazio
-  if (items.length === 0 && step !== "done") {
+  // Carrinho vazio — só antes de concluir um pedido. Após o submit (`doneData`),
+  // o carrinho é esvaziado de propósito; as telas de PIX/sucesso é que assumem.
+  if (items.length === 0 && !doneData) {
     return (
       <div className="min-h-screen w-full bg-ink-50/60">
         {header}

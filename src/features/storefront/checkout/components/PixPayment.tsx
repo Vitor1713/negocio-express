@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { AppButton, Icon } from "@/components/ui";
 import { storeBRL } from "../../format";
@@ -9,6 +9,61 @@ import { OrderConfirmed } from "./OrderConfirmed";
 import type { OrderResponse, PaymentResponse } from "../service";
 
 const EXPIRY_SECONDS = 15 * 60;
+
+/** Dev: o gateway *fake* não confirma por webhook nem devolve QR/copia-e-cola. */
+const IS_DEV = process.env.NODE_ENV === "development";
+
+/**
+ * QR Code simulado para desenvolvimento. Desenha os três marcadores de canto e
+ * um padrão de módulos determinístico (semeado pelo `seed`) — não é escaneável,
+ * só ilustra o fluxo enquanto o gateway fake não devolve `pixQrCodeBase64`.
+ */
+function MockQrCode({ seed }: { seed: string }) {
+  const N = 25;
+  // Hash FNV-1a do seed → semente do PRNG (mulberry32), p/ um padrão estável.
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  const rand = () => {
+    h = (h + 0x6d2b79f5) | 0;
+    let t = Math.imul(h ^ (h >>> 15), 1 | h);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  // Marcador de posição (finder): anel externo 7×7 + núcleo 3×3.
+  const finder = (r: number, c: number): boolean | null => {
+    for (const [br, bc] of [[0, 0], [0, N - 7], [N - 7, 0]] as const) {
+      if (r >= br && r < br + 7 && c >= bc && c < bc + 7) {
+        const rr = r - br, cc = c - bc;
+        const ring = rr === 0 || rr === 6 || cc === 0 || cc === 6;
+        const core = rr >= 2 && rr <= 4 && cc >= 2 && cc <= 4;
+        return ring || core;
+      }
+    }
+    return null;
+  };
+  const rects: ReactNode[] = [];
+  for (let r = 0; r < N; r++) {
+    for (let c = 0; c < N; c++) {
+      const f = finder(r, c);
+      const on = f === null ? rand() > 0.5 : f;
+      if (on) rects.push(<rect key={`${r}-${c}`} x={c} y={r} width={1} height={1} />);
+    }
+  }
+  return (
+    <svg
+      viewBox={`-1 -1 ${N + 2} ${N + 2}`}
+      className="mx-auto h-56 w-56 rounded-xl border border-ink-100 bg-white p-2"
+      shapeRendering="crispEdges"
+      role="img"
+      aria-label="QR Code do Pix (simulado)"
+    >
+      <g fill="#0b1220">{rects}</g>
+    </svg>
+  );
+}
 
 type Props = {
   slug: string;
@@ -30,14 +85,20 @@ function useCountdown(seconds: number) {
 }
 
 export function PixPayment({ slug, order, payment, deliveryType }: Props) {
-  const poll = useOrderStatusPolling(slug, order.id ?? null, true);
+  // Dev: "Já paguei" simula a confirmação localmente (sem webhook do gateway).
+  const [devPaid, setDevPaid] = useState(false);
+  const poll = useOrderStatusPolling(slug, order.id ?? null, !devPaid);
   const { left, label } = useCountdown(EXPIRY_SECONDS);
   const [copied, setCopied] = useState(false);
 
   const status = poll.data?.status ?? order.status;
-  const confirmed = status === "Confirmed";
+  const confirmed = status === "Confirmed" || devPaid;
   const cancelled = status === "Cancelled";
   const expired = left <= 0 && !confirmed;
+
+  // Pedido confirmado ⇒ pagamento aprovado (o objeto `payment` do PIX não é
+  // refeito; sobrescrevemos a flag p/ a tela de sucesso refletir "pago").
+  const paidPayment = confirmed ? { ...payment, isApproved: true } : payment;
 
   async function copy() {
     if (!payment.pixCopyPaste) return;
@@ -52,7 +113,7 @@ export function PixPayment({ slug, order, payment, deliveryType }: Props) {
 
   // Pago/confirmado → tela de sucesso.
   if (confirmed) {
-    return <OrderConfirmed slug={slug} order={poll.data ?? order} payment={payment} deliveryType={deliveryType} />;
+    return <OrderConfirmed slug={slug} order={poll.data ?? order} payment={paidPayment} deliveryType={deliveryType} />;
   }
 
   if (cancelled) {
@@ -93,6 +154,8 @@ export function PixPayment({ slug, order, payment, deliveryType }: Props) {
             alt="QR Code do Pix"
             className="mx-auto h-56 w-56 rounded-xl border border-ink-100"
           />
+        ) : IS_DEV ? (
+          <MockQrCode seed={payment.pixCopyPaste ?? order.id ?? "dev-pix"} />
         ) : (
           <div className="mx-auto h-56 w-56 rounded-xl bg-ink-100 grid place-items-center text-ink-400">
             <Icon name="QrCode" size={64} />
@@ -134,8 +197,17 @@ export function PixPayment({ slug, order, payment, deliveryType }: Props) {
 
       <div className="mt-5 w-full rounded-xl border border-ink-200 bg-white px-4 py-3.5 flex items-center gap-3 text-left">
         <Icon name="LoaderCircle" size={18} className="text-brand-600 animate-spin shrink-0" />
-        <div className="flex-1 text-sm text-ink-600">Aguardando confirmação do pagamento…</div>
-        <AppButton variant="ghost" size="sm" icon="RefreshCw" loading={poll.isFetching} onClick={() => poll.refetch()}>
+        <div className="flex-1 text-sm text-ink-600">
+          Aguardando confirmação do pagamento…
+          {IS_DEV && <span className="block text-[11px] text-ink-400">Modo dev: “Já paguei” confirma o pedido sem pagamento real.</span>}
+        </div>
+        <AppButton
+          variant="ghost"
+          size="sm"
+          icon="RefreshCw"
+          loading={poll.isFetching}
+          onClick={() => (IS_DEV ? setDevPaid(true) : poll.refetch())}
+        >
           Já paguei
         </AppButton>
       </div>
